@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  organization-service:
+    image: ${DOCKER_REGISTRY-}organizationservice
+    build:
+      context: .
+      dockerfile: ./Dockerfile

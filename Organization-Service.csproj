@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Organization_Service</RootNamespace>
+    <DockerComposeProjectPath>docker-compose.dcproj</DockerComposeProjectPath>
+    <UserSecretsId>fd5e633e-082b-4ad1-ad3c-acd03664c201</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+  </ItemGroup>
+
+</Project>

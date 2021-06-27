@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
+using Organization_Service.Models;
 
 namespace Organization_Service
 {
@@ -27,6 +29,10 @@ namespace Organization_Service
         public void ConfigureServices(IServiceCollection services)
         {
 
+            var connectionString = Environment.GetEnvironmentVariable("MYSQL_CONNECTSTRING");
+            var serverVersion = new MySqlServerVersion(new Version(8, 0, 25));
+            services.AddDbContext<OrganizationContext>(options =>
+                options.UseMySql(connectionString, serverVersion).EnableSensitiveDataLogging().EnableDetailedErrors());
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {

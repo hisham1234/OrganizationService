@@ -25,14 +25,14 @@ namespace Organization_Service.Controllers
         public async Task<ActionResult<IEnumerable<RoleDTO>>> GetRoles()
         {
             //return await _context.Roles.ToListAsync();
-            return await _context.Roles.Select(x => ItemToDTO(x)).ToListAsync();
+            return await _context.Role.Select(x => ItemToDTO(x)).ToListAsync();
         }
 
         // GET: api/Roles/5
         [HttpGet("{id}")]
         public async Task<ActionResult<RoleDTO>> GetRole(int id)
         {
-            var role = await _context.Roles.FindAsync(id);
+            var role = await _context.Role.FindAsync(id);
 
             if (role == null)
             {
@@ -55,7 +55,7 @@ namespace Organization_Service.Controllers
 
             //_context.Entry(role).State = EntityState.Modified;
 
-            var role = await _context.Roles.FindAsync(id);
+            var role = await _context.Role.FindAsync(id);
             if (role == null)
             {
                 return NotFound();
@@ -97,7 +97,7 @@ namespace Organization_Service.Controllers
                 UpdatedAt = DateTime.Now
             };
 
-            _context.Roles.Add(role);
+            _context.Role.Add(role);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetRole), new { id = role.ID }, ItemToDTO(role));
@@ -107,13 +107,13 @@ namespace Organization_Service.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRole(int id)
         {
-            var role = await _context.Roles.FindAsync(id);
+            var role = await _context.Role.FindAsync(id);
             if (role == null)
             {
                 return NotFound();
             }
 
-            _context.Roles.Remove(role);
+            _context.Role.Remove(role);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -121,7 +121,7 @@ namespace Organization_Service.Controllers
 
         private bool RoleExists(int id)
         {
-            return _context.Roles.Any(e => e.ID == id);
+            return _context.Role.Any(e => e.ID == id);
         }
 
         private static RoleDTO ItemToDTO(Role role) => new RoleDTO

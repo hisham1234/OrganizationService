@@ -2,11 +2,18 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Organization_Service.Models
 {
+    [Index(nameof(Email),IsUnique = true)]
     public class User
     {
+        public User()
+        {
+            this.Roles = new HashSet<Role>();
+        }
+
         public int ID { get; set; }
 
         [Required]
@@ -27,19 +34,22 @@ namespace Organization_Service.Models
         [StringLength(50, ErrorMessage = "LastName cannot be longer than 50 characters.")]
         public string LastName { get; set; }
 
-        public int? Office_ID { get; set; }
-        [ForeignKey("Office_ID")]
-        public Office Offices { get; set; }
+        //public int? Office_ID { get; set; }
+        //[ForeignKey("Office_ID")]
+        public int? OfficeID { get; set; }
+        public Office Office { get; set; }
 
-        public int? Role_ID { get; set; }
-        [ForeignKey("Role_ID")]
-        public Role Roles { get; set; }
+        //public int? Role_ID { get; set; }
+        //[ForeignKey("Role_ID")]
+        //public Role Role { get; set; }
 
         [Column(TypeName = "datetime")]
         public DateTime CreatedAt { get; set; }
 
         [Column(TypeName = "datetime")]
         public DateTime UpdatedAt { get; set; }
+
+        public ICollection<Role> Roles { get; set; }
     }
 
     public class UserDTO
@@ -54,8 +64,10 @@ namespace Organization_Service.Models
 
         public string LastName { get; set; }
 
-        public int? Office_ID { get; set; }
+        public int? OfficeID { get; set; }
 
-        public int? Role_ID { get; set; }
+        //public int? Role_ID { get; set; }
+        public ICollection<Role> Roles { get; set; }
+        //public List<int> RolesID { get; set; }
     }
 }

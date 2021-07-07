@@ -27,14 +27,14 @@ namespace Organization_Service.Controllers
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
             //return await _context.Users.ToListAsync();
-            return await _context.Users.Select(x => ItemToDTO(x)).ToListAsync();
+            return await _context.User.Select(x => ItemToDTO(x)).ToListAsync();
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.User.FindAsync(id);
 
             if (user == null)
             {
@@ -56,7 +56,7 @@ namespace Organization_Service.Controllers
 
             //_context.Entry(user).State = EntityState.Modified;
 
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.User.FindAsync(id);
             if (user == null)
             {
                 return NotFound();
@@ -67,8 +67,10 @@ namespace Organization_Service.Controllers
             user.Password = String.IsNullOrWhiteSpace(userDTO.Password) == false ? StringEncryption(userDTO.Password) : user.Password;     // Password Encryption
             user.FirstName = String.IsNullOrWhiteSpace(userDTO.FirstName) == false ? userDTO.FirstName : user.FirstName;
             user.LastName = String.IsNullOrWhiteSpace(userDTO.LastName) == false ? userDTO.LastName : user.LastName;
-            user.Office_ID = userDTO.Office_ID != null ? userDTO.Office_ID : user.Office_ID;
-            user.Role_ID = userDTO.Role_ID != null ? userDTO.Role_ID : user.Role_ID;
+            user.OfficeID = userDTO.OfficeID != null ? userDTO.OfficeID : user.OfficeID;
+            user.Roles = userDTO.Roles;
+            //user.Roles = userDTO.RolesID;
+            //user.Role_ID = userDTO.Role_ID != null ? userDTO.Role_ID : user.Role_ID;
             user.UpdatedAt = DateTime.Now;
 
             try
@@ -102,13 +104,15 @@ namespace Organization_Service.Controllers
                 Password = StringEncryption(userDTO.Password),      // Password Encryption
                 FirstName = userDTO.FirstName,
                 LastName = userDTO.LastName,
-                Office_ID = userDTO.Office_ID ?? null,
-                Role_ID = userDTO.Role_ID ?? null,
+                OfficeID = userDTO.OfficeID ?? null,
+                Roles = userDTO.Roles,
+                //Roles = userDTO.RolesID,
+                //Role_ID = userDTO.Role_ID ?? null,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
 
-            _context.Users.Add(user);
+            _context.User.Add(user);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetUser), new { id = user.ID }, ItemToDTO(user));
@@ -118,13 +122,13 @@ namespace Organization_Service.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.User.FindAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
 
-            _context.Users.Remove(user);
+            _context.User.Remove(user);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -132,7 +136,7 @@ namespace Organization_Service.Controllers
 
         private bool UserExists(int id)
         {
-            return _context.Users.Any(e => e.ID == id);
+            return _context.User.Any(e => e.ID == id);
         }
 
         private static UserDTO ItemToDTO(User user) => new UserDTO
@@ -142,8 +146,9 @@ namespace Organization_Service.Controllers
             Password = user.Password,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Office_ID = user.Office_ID,
-            Role_ID = user.Role_ID
+            OfficeID = user.OfficeID,
+            Roles = user.Roles
+            //RolesID = user.Roles
         };
 
         private string StringEncryption(string target)

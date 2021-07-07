@@ -2,11 +2,18 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Organization_Service.Models
 {
+    [Index(nameof(RoleName), IsUnique = true)]
     public class Role
     {
+        public Role()
+        {
+            this.Users = new HashSet<User>();
+        }
+
         public int ID { get; set; }
 
         [Required]

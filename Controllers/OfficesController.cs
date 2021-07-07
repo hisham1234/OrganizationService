@@ -25,14 +25,14 @@ namespace Organization_Service.Controllers
         public async Task<ActionResult<IEnumerable<OfficeDTO>>> GetOffices()
         {
             //return await _context.Offices.ToListAsync();
-            return await _context.Offices.Select(x => ItemToDTO(x)).ToListAsync();
+            return await _context.Office.Select(x => ItemToDTO(x)).ToListAsync();
         }
 
         // GET: api/Offices/5
         [HttpGet("{id}")]
         public async Task<ActionResult<OfficeDTO>> GetOffice(int id)
         {
-            var office = await _context.Offices.FindAsync(id);
+            var office = await _context.Office.FindAsync(id);
 
             if (office == null)
             {
@@ -55,14 +55,15 @@ namespace Organization_Service.Controllers
 
             //_context.Entry(office).State = EntityState.Modified;
             
-            var office = await _context.Offices.FindAsync(id);
+            var office = await _context.Office.FindAsync(id);
             if (office == null)
             {
                 return NotFound();
             }
 
             office.ID = officeDTO.ID;
-            office.OfficeName = officeDTO.OfficeName;
+            office.OfficeName = String.IsNullOrWhiteSpace(officeDTO.OfficeName) == false ? officeDTO.OfficeName : office.OfficeName;
+            office.ParentOfficeID = officeDTO.ParentOfficeID != null ? officeDTO.ParentOfficeID : office.ParentOfficeID;
             office.UpdatedAt = DateTime.Now;
 
             try
@@ -93,11 +94,12 @@ namespace Organization_Service.Controllers
             {
                 ID = officeDTO.ID,
                 OfficeName = officeDTO.OfficeName,
+                ParentOfficeID = officeDTO.ParentOfficeID ?? null,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
 
-            _context.Offices.Add(office);
+            _context.Office.Add(office);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetOffice), new { id = office.ID }, ItemToDTO(office));
@@ -107,13 +109,13 @@ namespace Organization_Service.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOffice(int id)
         {
-            var office = await _context.Offices.FindAsync(id);
+            var office = await _context.Office.FindAsync(id);
             if (office == null)
             {
                 return NotFound();
             }
 
-            _context.Offices.Remove(office);
+            _context.Office.Remove(office);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -121,13 +123,14 @@ namespace Organization_Service.Controllers
 
         private bool OfficeExists(int id)
         {
-            return _context.Offices.Any(e => e.ID == id);
+            return _context.Office.Any(e => e.ID == id);
         }
 
         private static OfficeDTO ItemToDTO(Office office) => new OfficeDTO
         {
             ID = office.ID,
-            OfficeName = office.OfficeName
+            OfficeName = office.OfficeName,
+            ParentOfficeID = office.ParentOfficeID
         };
     }
 }

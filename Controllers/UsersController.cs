@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Organization_Service.Models;
+using Organization_Service.Helpers;
 
 namespace Organization_Service.Controllers
 {
@@ -16,32 +17,66 @@ namespace Organization_Service.Controllers
     public class UsersController : ControllerBase
     {
         private readonly OrganizationContext _context;
+        private LoggerHelper logHelp;
 
         public UsersController(OrganizationContext context)
         {
             _context = context;
+            logHelp = new LoggerHelper();
         }
 
         // GET: api/Users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
-            //return await _context.Users.ToListAsync();
-            return await _context.User.Select(x => ItemToDTO(x)).ToListAsync();
+            logHelp.Log(logHelp.getMessage("GetUsers"));
+            try
+            {
+                var findUsers = await _context.User.Select(x => ItemToDTO(x)).ToListAsync();
+                if (findUsers == null)
+                {
+                    return NotFound();
+                }
+                var result = new
+                {
+                    response = findUsers,
+                };
+                logHelp.Log(logHelp.getMessage("GetUsers", 200));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                logHelp.Log(logHelp.getMessage("GetUsers", 500));
+                logHelp.Log(logHelp.getMessage("GetUsers", ex.Message));
+                return StatusCode(500);
+            }
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
-            var user = await _context.User.FindAsync(id);
-
-            if (user == null)
+            logHelp.Log(logHelp.getMessage("GetUser"));
+            try
             {
-                return NotFound();
+                var user = await _context.Office.FindAsync(id);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                var result = new
+                {
+                    response = user,
+                };
+                logHelp.Log(logHelp.getMessage("GetUser", 200));
+                return Ok(result);
             }
-
-            return ItemToDTO(user);
+            catch (Exception ex)
+            {
+                logHelp.Log(logHelp.getMessage("GetUser", 500));
+                logHelp.Log(logHelp.getMessage("GetUser", ex.Message));
+                return StatusCode(500);
+            }
         }
 
         // PUT: api/Users/5
@@ -49,46 +84,46 @@ namespace Organization_Service.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, UserDTO userDTO)
         {
-            if (id != userDTO.ID)
-            {
-                return BadRequest();
-            }
-
-            //_context.Entry(user).State = EntityState.Modified;
-
+            logHelp.Log(logHelp.getMessage("PutUser"));
             var user = await _context.User.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            user.ID = userDTO.ID;
-            user.Email = String.IsNullOrWhiteSpace(userDTO.Email)==false ? userDTO.Email : user.Email;
-            user.Password = String.IsNullOrWhiteSpace(userDTO.Password) == false ? StringEncryption(userDTO.Password) : user.Password;     // Password Encryption
-            user.FirstName = String.IsNullOrWhiteSpace(userDTO.FirstName) == false ? userDTO.FirstName : user.FirstName;
-            user.LastName = String.IsNullOrWhiteSpace(userDTO.LastName) == false ? userDTO.LastName : user.LastName;
-            user.OfficeID = userDTO.OfficeID != null ? userDTO.OfficeID : user.OfficeID;
-            user.Roles = userDTO.Roles;
-            //user.Roles = userDTO.RolesID;
-            //user.Role_ID = userDTO.Role_ID != null ? userDTO.Role_ID : user.Role_ID;
-            user.UpdatedAt = DateTime.Now;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
+                if (user == null|| !UserExists(id))
                 {
+                    logHelp.Log(logHelp.getMessage("PutUser", 500));
+                    logHelp.Log(logHelp.getMessage("PutUser", "User was not Found"));
                     return NotFound();
+                }
+                else if (id != userDTO.ID)
+                {
+                    logHelp.Log(logHelp.getMessage("PutUser", 500));
+                    logHelp.Log(logHelp.getMessage("PutUser", "User was not Found"));
+                    return BadRequest();
                 }
                 else
                 {
-                    throw;
+                    user.ID = userDTO.ID;
+                    user.Email = String.IsNullOrWhiteSpace(userDTO.Email) == false ? userDTO.Email : user.Email;
+                    user.Password = String.IsNullOrWhiteSpace(userDTO.Password) == false ? StringEncryption(userDTO.Password) : user.Password;     // Password Encryption
+                    user.FirstName = String.IsNullOrWhiteSpace(userDTO.FirstName) == false ? userDTO.FirstName : user.FirstName;
+                    user.LastName = String.IsNullOrWhiteSpace(userDTO.LastName) == false ? userDTO.LastName : user.LastName;
+                    user.OfficeID = userDTO.OfficeID != null ? userDTO.OfficeID : user.OfficeID;
+                    user.Roles = userDTO.Roles;
+                    //user.Roles = userDTO.RolesID;
+                    //user.Role_ID = userDTO.Role_ID != null ? userDTO.Role_ID : user.Role_ID;
+                    user.UpdatedAt = DateTime.Now;
+
+                    await _context.SaveChangesAsync();
+
                 }
             }
+            catch (Exception ex)
+            {
 
+                logHelp.Log(logHelp.getMessage("PutUser", 500));
+                logHelp.Log(logHelp.getMessage("PutUser", ex.Message));
+                return StatusCode(500);
+            }
             return NoContent();
         }
 
@@ -97,7 +132,7 @@ namespace Organization_Service.Controllers
         [HttpPost]
         public async Task<ActionResult<UserDTO>> PostUser(UserDTO userDTO)
         {
-
+            logHelp.Log(logHelp.getMessage("PostUser"));
             var user = new User
             {
                 Email = userDTO.Email,
@@ -112,9 +147,19 @@ namespace Organization_Service.Controllers
                 UpdatedAt = DateTime.Now
             };
 
-            _context.User.Add(user);
-            await _context.SaveChangesAsync();
-
+            try
+            {
+                _context.User.Add(user);
+                await _context.SaveChangesAsync();
+                logHelp.Log(logHelp.getMessage("PostUser", 500));
+                logHelp.Log(logHelp.getMessage("Error while creating new user"));
+            }
+            catch (Exception ex)
+            {
+                logHelp.Log(logHelp.getMessage("PostUser", 500));
+                logHelp.Log(logHelp.getMessage("PostUser", ex.Message));
+                return StatusCode(500);
+            }
             return CreatedAtAction(nameof(GetUser), new { id = user.ID }, ItemToDTO(user));
         }
 
@@ -122,20 +167,32 @@ namespace Organization_Service.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _context.User.FindAsync(id);
-            if (user == null)
+            logHelp.Log(logHelp.getMessage("DeleteUser"));
+            try
             {
-                return NotFound();
+                var user = await _context.User.FindAsync(id);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    _context.User.Remove(user);
+                    await _context.SaveChangesAsync();
+                }
             }
-
-            _context.User.Remove(user);
-            await _context.SaveChangesAsync();
-
+            catch (Exception ex)
+            {
+                logHelp.Log(logHelp.getMessage("DeleteUser", 500));
+                logHelp.Log(logHelp.getMessage("DeleteUser", ex.Message));
+                return StatusCode(500);
+            }
             return NoContent();
         }
 
         private bool UserExists(int id)
         {
+            logHelp.Log(logHelp.getMessage("UserExists"));
             return _context.User.Any(e => e.ID == id);
         }
 
@@ -153,6 +210,7 @@ namespace Organization_Service.Controllers
 
         private string StringEncryption(string target)
         {
+            logHelp.Log(logHelp.getMessage("StringEncryption"));
             byte[] salt = new byte[128 / 8];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(salt);

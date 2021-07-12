@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Organization_Service.Helpers;
 using Organization_Service.Models;
 
 namespace Organization_Service.Controllers
@@ -14,33 +15,68 @@ namespace Organization_Service.Controllers
     public class OfficesController : ControllerBase
     {
         private readonly OrganizationContext _context;
+        private LoggerHelper logHelp;
 
         public OfficesController(OrganizationContext context)
         {
             _context = context;
+            logHelp = new LoggerHelper();
         }
 
         // GET: api/Offices
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OfficeDTO>>> GetOffices()
         {
-            //return await _context.Offices.ToListAsync();
-            return await _context.Office.Select(x => ItemToDTO(x)).ToListAsync();
+            logHelp.Log(logHelp.getMessage("GetOffices"));
+            try
+            {
+                var findOffices = await _context.Office.Select(x => ItemToDTO(x)).ToListAsync();
+                if (findOffices == null)
+                {
+                    logHelp.Log(logHelp.getMessage("GetOffices", 404));
+                    return NotFound();
+                }    
+                var result = new
+                {
+                    response = findOffices,
+                };
+                logHelp.Log(logHelp.getMessage("GetOffices", 200));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                logHelp.Log(logHelp.getMessage("GetOffices", 500));
+                logHelp.Log(logHelp.getMessage("GetOffices", ex.Message));
+                return StatusCode(500);
+            }
         }
 
         // GET: api/Offices/5
         [HttpGet("{id}")]
         public async Task<ActionResult<OfficeDTO>> GetOffice(int id)
         {
-            var office = await _context.Office.FindAsync(id);
-
-            if (office == null)
+            logHelp.Log(logHelp.getMessage("GetOffice"));
+            try
             {
-                return NotFound();
+                var office = await _context.Office.FindAsync(id);
+                if (office == null|| !OfficeExists(id))
+                {
+                    logHelp.Log(logHelp.getMessage("GetOffice", 404));
+                    return NotFound();
+                }
+                var result = new
+                {
+                    response = office,
+                };
+                logHelp.Log(logHelp.getMessage("GetOffice", 200));
+                return Ok(result);
             }
-
-            //return office;
-            return ItemToDTO(office);
+            catch (Exception ex)
+            {
+                logHelp.Log(logHelp.getMessage("GetOffice", 500));
+                logHelp.Log(logHelp.getMessage("GetOffice", ex.Message));
+                return StatusCode(500);
+            }
         }
 
         // PUT: api/Offices/5
@@ -48,40 +84,40 @@ namespace Organization_Service.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOffice(int id, OfficeDTO officeDTO)
         {
-            if (id != officeDTO.ID)
-            {
-                return BadRequest();
-            }
-
-            //_context.Entry(office).State = EntityState.Modified;
-            
+            logHelp.Log(logHelp.getMessage("PutOffice"));
             var office = await _context.Office.FindAsync(id);
-            if (office == null)
-            {
-                return NotFound();
-            }
-
-            office.ID = officeDTO.ID;
-            office.OfficeName = String.IsNullOrWhiteSpace(officeDTO.OfficeName) == false ? officeDTO.OfficeName : office.OfficeName;
-            office.ParentOfficeID = officeDTO.ParentOfficeID != null ? officeDTO.ParentOfficeID : office.ParentOfficeID;
-            office.UpdatedAt = DateTime.Now;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!OfficeExists(id))
+                if (office == null|| !OfficeExists(id))
                 {
+                    logHelp.Log(logHelp.getMessage("PutOffice", 500));
+                    logHelp.Log(logHelp.getMessage("PutOffice", "Office was not Found"));
                     return NotFound();
+                }
+                else if (id != officeDTO.ID)
+                {
+                    logHelp.Log(logHelp.getMessage("PutOffice", 500));
+                    logHelp.Log(logHelp.getMessage("PutOffice", "Office was not Found"));
+                    return BadRequest();
                 }
                 else
                 {
-                    throw;
+                    office.ID = officeDTO.ID;
+                    office.OfficeName = String.IsNullOrWhiteSpace(officeDTO.OfficeName) == false ? officeDTO.OfficeName : office.OfficeName;
+                    office.ParentOfficeID = officeDTO.ParentOfficeID != null ? officeDTO.ParentOfficeID : office.ParentOfficeID;
+                    office.UpdatedAt = DateTime.Now;
+
+                    await _context.SaveChangesAsync();
+
                 }
             }
+            catch (Exception ex)
+            {
 
+                logHelp.Log(logHelp.getMessage("PutOffice", 500));
+                logHelp.Log(logHelp.getMessage("PutOffice", ex.Message));
+                return StatusCode(500);
+            }
             return NoContent();
         }
 
@@ -90,6 +126,7 @@ namespace Organization_Service.Controllers
         [HttpPost]
         public async Task<ActionResult<OfficeDTO>> PostOffice(OfficeDTO officeDTO)
         {
+            logHelp.Log(logHelp.getMessage("PostOffice"));
             var office = new Office
             {
                 ID = officeDTO.ID,
@@ -99,8 +136,19 @@ namespace Organization_Service.Controllers
                 UpdatedAt = DateTime.Now
             };
 
-            _context.Office.Add(office);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Office.Add(office);
+                await _context.SaveChangesAsync();
+                logHelp.Log(logHelp.getMessage("PostOffice", 500));
+                logHelp.Log(logHelp.getMessage("Error while creating new office"));
+            }
+            catch(Exception ex)
+            {
+                logHelp.Log(logHelp.getMessage("PostOffice", 500));
+                logHelp.Log(logHelp.getMessage("PostOffice", ex.Message));
+                return StatusCode(500);
+            }
 
             return CreatedAtAction(nameof(GetOffice), new { id = office.ID }, ItemToDTO(office));
         }
@@ -109,20 +157,33 @@ namespace Organization_Service.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOffice(int id)
         {
-            var office = await _context.Office.FindAsync(id);
-            if (office == null)
+            logHelp.Log(logHelp.getMessage("DeleteOffice"));
+            try
             {
-                return NotFound();
+                var office = await _context.Office.FindAsync(id);
+                if (office == null)
+                {
+                    logHelp.Log(logHelp.getMessage("DeleteOffice", 404));
+                    return NotFound();
+                }
+                else
+                {
+                    _context.Office.Remove(office);
+                    await _context.SaveChangesAsync();
+                }
             }
-
-            _context.Office.Remove(office);
-            await _context.SaveChangesAsync();
-
+            catch (Exception ex)
+            {
+                logHelp.Log(logHelp.getMessage("DeleteOffice", 500));
+                logHelp.Log(logHelp.getMessage("DeleteOffice", ex.Message));
+                return StatusCode(500);
+            }
             return NoContent();
         }
 
         private bool OfficeExists(int id)
         {
+            logHelp.Log(logHelp.getMessage("OfficeExists"));
             return _context.Office.Any(e => e.ID == id);
         }
 

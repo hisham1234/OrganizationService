@@ -32,6 +32,7 @@ namespace Organization_Service.Controllers
                 var findRoles = await _context.Role.Select(x => ItemToDTO(x)).ToListAsync();
                 if (findRoles == null)
                 {
+                    logHelp.Log(logHelp.getMessage("GetRoles", 404));
                     return NotFound();
                 }
                 var result = new
@@ -57,8 +58,9 @@ namespace Organization_Service.Controllers
             try
             {
                 var role = await _context.Role.FindAsync(id);
-                if (role == null)
+                if (role == null || !RoleExists(id))
                 {
+                    logHelp.Log(logHelp.getMessage("GetRole", 404));
                     return NotFound();
                 }
                 var result = new
@@ -156,6 +158,7 @@ namespace Organization_Service.Controllers
                 var role = await _context.Role.FindAsync(id);
                 if (role == null)
                 {
+                    logHelp.Log(logHelp.getMessage("DeleteRole", 404));
                     return NotFound();
                 }
                 else

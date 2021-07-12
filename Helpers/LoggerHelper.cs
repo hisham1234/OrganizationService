@@ -11,7 +11,7 @@ namespace Organization_Service.Helpers
     {
         public void Log(string msg)
         {
-            Console.WriteLine(msg);
+            System.Diagnostics.Debug.WriteLine(msg);
         }
         public string getMessage(string methodName)
         {

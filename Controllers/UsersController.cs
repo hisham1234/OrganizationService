@@ -35,6 +35,7 @@ namespace Organization_Service.Controllers
                 var findUsers = await _context.User.Select(x => ItemToDTO(x)).ToListAsync();
                 if (findUsers == null)
                 {
+                    logHelp.Log(logHelp.getMessage("GetUsers", 404));
                     return NotFound();
                 }
                 var result = new
@@ -60,8 +61,9 @@ namespace Organization_Service.Controllers
             try
             {
                 var user = await _context.Office.FindAsync(id);
-                if (user == null)
+                if (user == null || !UserExists(id))
                 {
+                    logHelp.Log(logHelp.getMessage("GetUser", 404));
                     return NotFound();
                 }
                 var result = new
@@ -173,6 +175,7 @@ namespace Organization_Service.Controllers
                 var user = await _context.User.FindAsync(id);
                 if (user == null)
                 {
+                    logHelp.Log(logHelp.getMessage("DeleteUser", 404));
                     return NotFound();
                 }
                 else

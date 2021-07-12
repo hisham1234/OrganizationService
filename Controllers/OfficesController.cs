@@ -33,6 +33,7 @@ namespace Organization_Service.Controllers
                 var findOffices = await _context.Office.Select(x => ItemToDTO(x)).ToListAsync();
                 if (findOffices == null)
                 {
+                    logHelp.Log(logHelp.getMessage("GetOffices", 404));
                     return NotFound();
                 }    
                 var result = new
@@ -58,8 +59,9 @@ namespace Organization_Service.Controllers
             try
             {
                 var office = await _context.Office.FindAsync(id);
-                if (office == null)
+                if (office == null|| !OfficeExists(id))
                 {
+                    logHelp.Log(logHelp.getMessage("GetOffice", 404));
                     return NotFound();
                 }
                 var result = new
@@ -161,6 +163,7 @@ namespace Organization_Service.Controllers
                 var office = await _context.Office.FindAsync(id);
                 if (office == null)
                 {
+                    logHelp.Log(logHelp.getMessage("DeleteOffice", 404));
                     return NotFound();
                 }
                 else

@@ -16,19 +16,19 @@ namespace Organization_Service.Helpers
         public string getMessage(string methodName)
         {
             var stackTrace = new StackTrace();
-            var logmsg = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss") + " |" + Assembly.GetCallingAssembly().GetName().Name + " |" + methodName + " Called! ";
+            var logmsg = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss") + " | " + Assembly.GetCallingAssembly().GetName().Name + " | " + methodName + " Called! ";
             return logmsg;
         }
         public string getMessage(string methodName, int statusCode)
         {
             var stackTrace = new StackTrace();
-            var logmsg = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss") + " |" + Assembly.GetCallingAssembly().GetName().Name + " |" + methodName + " returned Code " + statusCode;
+            var logmsg = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss") + " | " + Assembly.GetCallingAssembly().GetName().Name + " | " + methodName + " returned Code " + statusCode;
             return logmsg;
         }
 
         public string getMessage(string methodName, string msg)
         {
-            var logmsg = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss") + " |" + Assembly.GetCallingAssembly().GetName().Name + " | [Error]" + msg;
+            var logmsg = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss") + " | " + Assembly.GetCallingAssembly().GetName().Name + " | [Error]" + msg;
             return logmsg;
         }
     }

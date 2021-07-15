@@ -26,7 +26,7 @@ namespace Organization_Service
         }
 
         public IConfiguration Configuration { get; }
-        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+        readonly string AllowSpecificOrigins = "_allowSpecificOrigins";
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -34,7 +34,7 @@ namespace Organization_Service
         // http://localhost:4200 should be removed later in the production
             services.AddCors(options =>
            {
-               options.AddPolicy(name: MyAllowSpecificOrigins,
+               options.AddPolicy(name: AllowSpecificOrigins,
                builder =>
                {
                 builder.WithOrigins("https://crisys-ui.azurewebsites.net", "http://localhost:4200");
@@ -73,7 +73,7 @@ namespace Organization_Service
             app.UseRouting();
 
             //enabled CORS policy
-            app.UseCors(MyAllowSpecificOrigins);
+            app.UseCors(AllowSpecificOrigins);
 
             app.UseAuthorization();
 

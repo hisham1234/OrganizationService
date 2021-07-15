@@ -20,14 +20,23 @@ namespace Organization_Service
     {
         public Startup(IConfiguration configuration)
         {
+
             Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
-
+        readonly string allowOriginsAll = "_allowSpecificOrigins";
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            // enabled CORS policy any origin
+            services.AddCors(options => options.AddPolicy(name: allowOriginsAll, builder =>
+            {
+                builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            }));
 
             var connectionString = Environment.GetEnvironmentVariable("MYSQL_CONNECTSTRING");
             var serverVersion = new MySqlServerVersion(new Version(8, 0, 25));
@@ -51,8 +60,10 @@ namespace Organization_Service
             }
 
             app.UseHttpsRedirection();
-
             app.UseRouting();
+
+            //enabled CORS policy for any origins
+            app.UseCors(allowOriginsAll);
 
             app.UseAuthorization();
 

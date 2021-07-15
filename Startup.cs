@@ -13,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Organization_Service.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Organization_Service
 {
@@ -26,20 +25,18 @@ namespace Organization_Service
         }
 
         public IConfiguration Configuration { get; }
-        readonly string AllowSpecificOrigins = "_allowSpecificOrigins";
+        readonly string allowOriginsAll = "_allowSpecificOrigins";
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-        // enabled CORS policy for Crisys-UI
-        // http://localhost:4200 should be removed later in the production
-            services.AddCors(options =>
-           {
-               options.AddPolicy(name: AllowSpecificOrigins,
-               builder =>
-               {
-                builder.WithOrigins("https://crisys-ui.azurewebsites.net", "http://localhost:4200");
-            });
-           });
+
+            // enabled CORS policy any origin
+            services.AddCors(options => options.AddPolicy(name: allowOriginsAll, builder =>
+            {
+                builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            }));
 
             var connectionString = Environment.GetEnvironmentVariable("MYSQL_CONNECTSTRING");
             var serverVersion = new MySqlServerVersion(new Version(8, 0, 25));
@@ -49,13 +46,6 @@ namespace Organization_Service
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Organization_Service", Version = "v1" });
-            });
-
-
-            services.AddAuthentication(x =>
-            {
-                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-
             });
         }
 
@@ -72,8 +62,8 @@ namespace Organization_Service
             app.UseHttpsRedirection();
             app.UseRouting();
 
-            //enabled CORS policy
-            app.UseCors(AllowSpecificOrigins);
+            //enabled CORS policy for any origins
+            app.UseCors(allowOriginsAll);
 
             app.UseAuthorization();
 

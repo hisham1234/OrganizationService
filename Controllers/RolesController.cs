@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Organization_Service.Helpers;
 using Organization_Service.Models;
 
@@ -14,10 +16,16 @@ namespace Organization_Service.Controllers
     [ApiController]
     public class RolesController : ControllerBase
     {
+        // Inject telemetry and logger is necessary in order to add
+        // specific log in Azure ApplicationInsights
+        private readonly ILogger _logger;
+        private readonly TelemetryClient _telemetry;
         private readonly OrganizationContext _context;
         private LoggerHelper logHelp;
-        public RolesController(OrganizationContext context)
+        public RolesController(OrganizationContext context, ILogger<RolesController> logger, TelemetryClient telemetry)
         {
+            _telemetry = telemetry;
+            _logger = logger;
             _context = context;
             logHelp = new LoggerHelper();
         }
@@ -27,12 +35,15 @@ namespace Organization_Service.Controllers
         public async Task<ActionResult<IEnumerable<RoleDTO>>> GetRoles()
         {
             logHelp.Log(logHelp.getMessage("GetRoles"));
+            _logger.LogInformation(logHelp.getMessage("GetRoles"));
+
             try
             {
                 var findRoles = await _context.Role.Select(x => ItemToDTO(x)).ToListAsync();
                 if (findRoles == null)
                 {
                     logHelp.Log(logHelp.getMessage("GetRoles", 404));
+                    _logger.LogWarning(logHelp.getMessage("GetRoles", 404));
                     return NotFound();
                 }
                 var result = new
@@ -40,12 +51,15 @@ namespace Organization_Service.Controllers
                     response = findRoles,
                 };
                 logHelp.Log(logHelp.getMessage("GetRoles", 200));
+                _logger.LogInformation(logHelp.getMessage("GetRoles",200));
                 return Ok(result);
             }
             catch (Exception ex)
             {
                 logHelp.Log(logHelp.getMessage("GetRoles", 500));
                 logHelp.Log(logHelp.getMessage("GetRoles", ex.Message));
+                _logger.LogError(logHelp.getMessage("GetRoles", 500));
+                _logger.LogError(logHelp.getMessage("GetRoles", ex.Message));
                 return StatusCode(500);
             }
         }
@@ -55,12 +69,14 @@ namespace Organization_Service.Controllers
         public async Task<ActionResult<RoleDTO>> GetRole(int id)
         {
             logHelp.Log(logHelp.getMessage("GetRole"));
+            _logger.LogInformation(logHelp.getMessage("GetRole"));
             try
             {
                 var role = await _context.Role.FindAsync(id);
                 if (role == null || !RoleExists(id))
                 {
                     logHelp.Log(logHelp.getMessage("GetRole", 404));
+                    _logger.LogWarning(logHelp.getMessage("GetRole",404));
                     return NotFound();
                 }
                 var result = new
@@ -68,12 +84,15 @@ namespace Organization_Service.Controllers
                     response = role,
                 };
                 logHelp.Log(logHelp.getMessage("GetRole", 200));
+                _logger.LogInformation(logHelp.getMessage("GetRole",200));
                 return Ok(result);
             }
             catch (Exception ex)
             {
                 logHelp.Log(logHelp.getMessage("GetRole", 500));
                 logHelp.Log(logHelp.getMessage("GetRole", ex.Message));
+                _logger.LogError(logHelp.getMessage("GetRole", 500));
+                _logger.LogError(logHelp.getMessage("GetRole", ex.Message));
                 return StatusCode(500);
             }
         }
@@ -84,6 +103,7 @@ namespace Organization_Service.Controllers
         public async Task<IActionResult> PutRole(int id, RoleDTO roleDTO)
         {
             logHelp.Log(logHelp.getMessage("PutRole"));
+            _logger.LogInformation(logHelp.getMessage("PutRole"));
             var role = await _context.Role.FindAsync(id);
             try
             {
@@ -91,12 +111,16 @@ namespace Organization_Service.Controllers
                 {
                     logHelp.Log(logHelp.getMessage("PutRole", 500));
                     logHelp.Log(logHelp.getMessage("PutRole", "Role was not Found"));
+                    _logger.LogError(logHelp.getMessage("PutRole", 500));
+                    _logger.LogError(logHelp.getMessage("PutRole", "Role was not Found"));
                     return NotFound();
                 }
                 else if (id != roleDTO.ID)
                 {
                     logHelp.Log(logHelp.getMessage("PutRole", 500));
                     logHelp.Log(logHelp.getMessage("PutRole", "Role was not Found"));
+                    _logger.LogError(logHelp.getMessage("PutRole", 500));
+                    _logger.LogError(logHelp.getMessage("PutRole", "Role was not Found"));
                     return BadRequest();
                 }
                 else
@@ -104,6 +128,7 @@ namespace Organization_Service.Controllers
                     role.ID = roleDTO.ID;
                     role.RoleName = roleDTO.RoleName;
                     role.UpdatedAt = DateTime.Now;
+                    _logger.LogInformation(logHelp.getMessage("PutRole", 200));
 
                     await _context.SaveChangesAsync();
                 }
@@ -112,6 +137,8 @@ namespace Organization_Service.Controllers
             {
                 logHelp.Log(logHelp.getMessage("PutRole", 500));
                 logHelp.Log(logHelp.getMessage("PutRole", ex.Message));
+                _logger.LogError(logHelp.getMessage("PutRole", 500));
+                _logger.LogError(logHelp.getMessage("PutRole", ex.Message));
                 return StatusCode(500);
             }
             return NoContent();
@@ -123,6 +150,7 @@ namespace Organization_Service.Controllers
         public async Task<ActionResult<RoleDTO>> PostRole(RoleDTO roleDTO)
         {
             logHelp.Log(logHelp.getMessage("PostRole"));
+            _logger.LogInformation(logHelp.getMessage("PostRole"));
             var role = new Role
             {
                 ID = roleDTO.ID,
@@ -135,13 +163,14 @@ namespace Organization_Service.Controllers
             {
                 _context.Role.Add(role);
                 await _context.SaveChangesAsync();
-                logHelp.Log(logHelp.getMessage("PostRole", 500));
-                logHelp.Log(logHelp.getMessage("Error while creating new role"));
+                _logger.LogInformation(logHelp.getMessage("PostRole", 200));
             }
             catch (Exception ex)
             {
                 logHelp.Log(logHelp.getMessage("PostRole", 500));
                 logHelp.Log(logHelp.getMessage("PostRole", ex.Message));
+                _logger.LogError(logHelp.getMessage("PostRole", 500));
+                _logger.LogError(logHelp.getMessage("PostRole", ex.Message));
                 return StatusCode(500);
             }
             return CreatedAtAction(nameof(GetRole), new { id = role.ID }, ItemToDTO(role));
@@ -152,18 +181,22 @@ namespace Organization_Service.Controllers
         public async Task<IActionResult> DeleteRole(int id)
         {
             logHelp.Log(logHelp.getMessage("DeleteRole"));
+            _logger.LogInformation(logHelp.getMessage("DeleteRole"));
+
 
             try
             {
                 var role = await _context.Role.FindAsync(id);
                 if (role == null)
                 {
+                    _logger.LogWarning(logHelp.getMessage("DeleteRole", 404));
                     logHelp.Log(logHelp.getMessage("DeleteRole", 404));
                     return NotFound();
                 }
                 else
                 {
                     _context.Role.Remove(role);
+                    _logger.LogInformation(logHelp.getMessage("DeleteRole", 200));
                     await _context.SaveChangesAsync();
                 }
             }
@@ -171,6 +204,8 @@ namespace Organization_Service.Controllers
             {
                 logHelp.Log(logHelp.getMessage("DeleteRole", 500));
                 logHelp.Log(logHelp.getMessage("DeleteRole", ex.Message));
+                _logger.LogError(logHelp.getMessage("DeleteRole", 500));
+                _logger.LogError(logHelp.getMessage("DeleteRole", ex.Message));
                 return StatusCode(500);
             }
             return NoContent();
@@ -178,7 +213,6 @@ namespace Organization_Service.Controllers
 
         private bool RoleExists(int id)
         {
-            logHelp.Log(logHelp.getMessage("RoleExists"));
             return _context.Role.Any(e => e.ID == id);
         }
 

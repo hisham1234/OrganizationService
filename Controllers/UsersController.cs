@@ -29,27 +29,32 @@ namespace Organization_Service.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
-            logHelp.Log(logHelp.getMessage("GetUsers"));
+            logHelp.Log(logHelp.getMessage(nameof(GetUsers)));
+
             try
             {
                 var findUsers = await _context.User.Select(x => ItemToDTO(x)).ToListAsync();
+                
                 if (findUsers == null)
                 {
-                    logHelp.Log(logHelp.getMessage("GetUsers", 404));
+                    logHelp.Log(logHelp.getMessage(nameof(GetUsers), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(GetUsers), "Users were not Found"));
                     return NotFound();
                 }
+                
                 var result = new
                 {
-                    response = findUsers,
+                    response = findUsers
                 };
-                logHelp.Log(logHelp.getMessage("GetUsers", 200));
+
+                logHelp.Log(logHelp.getMessage(nameof(GetUsers), StatusCodes.Status200OK));
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                logHelp.Log(logHelp.getMessage("GetUsers", 500));
-                logHelp.Log(logHelp.getMessage("GetUsers", ex.Message));
-                return StatusCode(500);
+                logHelp.Log(logHelp.getMessage(nameof(GetUsers), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(GetUsers), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -57,27 +62,32 @@ namespace Organization_Service.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
-            logHelp.Log(logHelp.getMessage("GetUser"));
+            logHelp.Log(logHelp.getMessage(nameof(GetUser)));
+
             try
             {
-                var user = await _context.Office.FindAsync(id);
+                var user = await _context.User.FindAsync(id);
+
                 if (user == null || !UserExists(id))
                 {
-                    logHelp.Log(logHelp.getMessage("GetUser", 404));
+                    logHelp.Log(logHelp.getMessage(nameof(GetUser), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(GetUser), "User was not Found"));
                     return NotFound();
                 }
+
                 var result = new
                 {
-                    response = user,
+                    response = ItemToDTO(user)
                 };
-                logHelp.Log(logHelp.getMessage("GetUser", 200));
+
+                logHelp.Log(logHelp.getMessage(nameof(GetUser), StatusCodes.Status200OK));
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                logHelp.Log(logHelp.getMessage("GetUser", 500));
-                logHelp.Log(logHelp.getMessage("GetUser", ex.Message));
-                return StatusCode(500);
+                logHelp.Log(logHelp.getMessage(nameof(GetUser), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(GetUser), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -86,20 +96,22 @@ namespace Organization_Service.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, UserDTO userDTO)
         {
-            logHelp.Log(logHelp.getMessage("PutUser"));
-            var user = await _context.User.FindAsync(id);
+            logHelp.Log(logHelp.getMessage(nameof(PutUser)));
+            
             try
             {
-                if (user == null|| !UserExists(id))
+                var user = await _context.User.FindAsync(id);
+
+                if (user == null || !UserExists(id))
                 {
-                    logHelp.Log(logHelp.getMessage("PutUser", 500));
-                    logHelp.Log(logHelp.getMessage("PutUser", "User was not Found"));
+                    logHelp.Log(logHelp.getMessage(nameof(PutUser), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(PutUser), "User was not Found"));
                     return NotFound();
                 }
                 else if (id != userDTO.ID)
                 {
-                    logHelp.Log(logHelp.getMessage("PutUser", 500));
-                    logHelp.Log(logHelp.getMessage("PutUser", "User was not Found"));
+                    logHelp.Log(logHelp.getMessage(nameof(PutUser), StatusCodes.Status400BadRequest));
+                    logHelp.Log(logHelp.getMessage(nameof(PutUser), "UserID does not match"));
                     return BadRequest();
                 }
                 else
@@ -116,17 +128,16 @@ namespace Organization_Service.Controllers
                     user.UpdatedAt = DateTime.Now;
 
                     await _context.SaveChangesAsync();
-
+                    return NoContent();
                 }
             }
             catch (Exception ex)
             {
 
-                logHelp.Log(logHelp.getMessage("PutUser", 500));
-                logHelp.Log(logHelp.getMessage("PutUser", ex.Message));
-                return StatusCode(500);
+                logHelp.Log(logHelp.getMessage(nameof(PutUser), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(PutUser), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            return NoContent();
         }
 
         // POST: api/Users
@@ -134,68 +145,71 @@ namespace Organization_Service.Controllers
         [HttpPost]
         public async Task<ActionResult<UserDTO>> PostUser(UserDTO userDTO)
         {
-            logHelp.Log(logHelp.getMessage("PostUser"));
-            var user = new User
-            {
-                Email = userDTO.Email,
-                Password = StringEncryption(userDTO.Password),      // Password Encryption
-                FirstName = userDTO.FirstName,
-                LastName = userDTO.LastName,
-                OfficeID = userDTO.OfficeID ?? null,
-                Roles = userDTO.Roles,
-                //Roles = userDTO.RolesID,
-                //Role_ID = userDTO.Role_ID ?? null,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
+            logHelp.Log(logHelp.getMessage(nameof(PostUser)));
 
             try
             {
+                var user = new User
+                {
+                    Email = userDTO.Email,
+                    Password = StringEncryption(userDTO.Password),      // Password Encryption
+                    FirstName = userDTO.FirstName,
+                    LastName = userDTO.LastName,
+                    OfficeID = userDTO.OfficeID ?? null,
+                    Roles = userDTO.Roles,
+                    //Roles = userDTO.RolesID,
+                    //Role_ID = userDTO.Role_ID ?? null,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+
                 _context.User.Add(user);
                 await _context.SaveChangesAsync();
-                logHelp.Log(logHelp.getMessage("PostUser", 500));
-                logHelp.Log(logHelp.getMessage("Error while creating new user"));
+                logHelp.Log(logHelp.getMessage(nameof(PostUser), StatusCodes.Status201Created));
+                return CreatedAtAction(nameof(GetUser), new { id = user.ID }, ItemToDTO(user));
             }
             catch (Exception ex)
             {
-                logHelp.Log(logHelp.getMessage("PostUser", 500));
-                logHelp.Log(logHelp.getMessage("PostUser", ex.Message));
-                return StatusCode(500);
+                logHelp.Log(logHelp.getMessage(nameof(PostUser), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(PostUser), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            return CreatedAtAction(nameof(GetUser), new { id = user.ID }, ItemToDTO(user));
         }
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            logHelp.Log(logHelp.getMessage("DeleteUser"));
+            logHelp.Log(logHelp.getMessage(nameof(DeleteUser)));
+
             try
             {
                 var user = await _context.User.FindAsync(id);
                 if (user == null)
                 {
-                    logHelp.Log(logHelp.getMessage("DeleteUser", 404));
+                    logHelp.Log(logHelp.getMessage(nameof(DeleteUser), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(DeleteUser), "User was not Found"));
                     return NotFound();
                 }
                 else
                 {
                     _context.User.Remove(user);
                     await _context.SaveChangesAsync();
+                    logHelp.Log(logHelp.getMessage(nameof(DeleteUser), StatusCodes.Status204NoContent));
+                    return NoContent();
                 }
             }
             catch (Exception ex)
             {
-                logHelp.Log(logHelp.getMessage("DeleteUser", 500));
-                logHelp.Log(logHelp.getMessage("DeleteUser", ex.Message));
-                return StatusCode(500);
+                logHelp.Log(logHelp.getMessage(nameof(DeleteUser), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(DeleteUser), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            return NoContent();
         }
 
         private bool UserExists(int id)
         {
-            logHelp.Log(logHelp.getMessage("UserExists"));
+            logHelp.Log(logHelp.getMessage(nameof(UserExists)));
             return _context.User.Any(e => e.ID == id);
         }
 
@@ -213,7 +227,7 @@ namespace Organization_Service.Controllers
 
         private string StringEncryption(string target)
         {
-            logHelp.Log(logHelp.getMessage("StringEncryption"));
+            logHelp.Log(logHelp.getMessage(nameof(StringEncryption)));
             byte[] salt = new byte[128 / 8];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(salt);

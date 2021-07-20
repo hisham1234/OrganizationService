@@ -27,27 +27,32 @@ namespace Organization_Service.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OfficeDTO>>> GetOffices()
         {
-            logHelp.Log(logHelp.getMessage("GetOffices"));
+            logHelp.Log(logHelp.getMessage(nameof(GetOffices)));
+
             try
             {
                 var findOffices = await _context.Office.Select(x => ItemToDTO(x)).ToListAsync();
+                
                 if (findOffices == null)
                 {
-                    logHelp.Log(logHelp.getMessage("GetOffices", 404));
+                    logHelp.Log(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(GetOffices), "Offices were not Found"));
                     return NotFound();
-                }    
+                }
+
                 var result = new
                 {
-                    response = findOffices,
+                    response = findOffices
                 };
-                logHelp.Log(logHelp.getMessage("GetOffices", 200));
+
+                logHelp.Log(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status200OK));
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                logHelp.Log(logHelp.getMessage("GetOffices", 500));
-                logHelp.Log(logHelp.getMessage("GetOffices", ex.Message));
-                return StatusCode(500);
+                logHelp.Log(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(GetOffices), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -55,27 +60,32 @@ namespace Organization_Service.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<OfficeDTO>> GetOffice(int id)
         {
-            logHelp.Log(logHelp.getMessage("GetOffice"));
+            logHelp.Log(logHelp.getMessage(nameof(GetOffice)));
+
             try
             {
                 var office = await _context.Office.FindAsync(id);
-                if (office == null|| !OfficeExists(id))
+                
+                if (office == null || !OfficeExists(id))
                 {
-                    logHelp.Log(logHelp.getMessage("GetOffice", 404));
+                    logHelp.Log(logHelp.getMessage(nameof(GetOffice), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(GetOffice), "Office was not Found"));
                     return NotFound();
                 }
+
                 var result = new
                 {
-                    response = office,
+                    response = ItemToDTO(office)
                 };
-                logHelp.Log(logHelp.getMessage("GetOffice", 200));
+
+                logHelp.Log(logHelp.getMessage(nameof(GetOffice), StatusCodes.Status200OK));
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                logHelp.Log(logHelp.getMessage("GetOffice", 500));
-                logHelp.Log(logHelp.getMessage("GetOffice", ex.Message));
-                return StatusCode(500);
+                logHelp.Log(logHelp.getMessage(nameof(GetOffice), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(GetOffice), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -84,20 +94,22 @@ namespace Organization_Service.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOffice(int id, OfficeDTO officeDTO)
         {
-            logHelp.Log(logHelp.getMessage("PutOffice"));
-            var office = await _context.Office.FindAsync(id);
+            logHelp.Log(logHelp.getMessage(nameof(PutOffice)));
+            
             try
             {
+                var office = await _context.Office.FindAsync(id);
+
                 if (office == null|| !OfficeExists(id))
                 {
-                    logHelp.Log(logHelp.getMessage("PutOffice", 500));
-                    logHelp.Log(logHelp.getMessage("PutOffice", "Office was not Found"));
+                    logHelp.Log(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(PutOffice), "Office was not Found"));
                     return NotFound();
                 }
                 else if (id != officeDTO.ID)
                 {
-                    logHelp.Log(logHelp.getMessage("PutOffice", 500));
-                    logHelp.Log(logHelp.getMessage("PutOffice", "Office was not Found"));
+                    logHelp.Log(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status400BadRequest));
+                    logHelp.Log(logHelp.getMessage(nameof(PutOffice), "OfficeID does not match"));
                     return BadRequest();
                 }
                 else
@@ -108,17 +120,17 @@ namespace Organization_Service.Controllers
                     office.UpdatedAt = DateTime.Now;
 
                     await _context.SaveChangesAsync();
-
+                    logHelp.Log(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status204NoContent));
+                    return NoContent();
                 }
             }
             catch (Exception ex)
             {
 
-                logHelp.Log(logHelp.getMessage("PutOffice", 500));
-                logHelp.Log(logHelp.getMessage("PutOffice", ex.Message));
-                return StatusCode(500);
+                logHelp.Log(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(PutOffice), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            return NoContent();
         }
 
         // POST: api/Offices
@@ -126,64 +138,67 @@ namespace Organization_Service.Controllers
         [HttpPost]
         public async Task<ActionResult<OfficeDTO>> PostOffice(OfficeDTO officeDTO)
         {
-            logHelp.Log(logHelp.getMessage("PostOffice"));
-            var office = new Office
-            {
-                ID = officeDTO.ID,
-                OfficeName = officeDTO.OfficeName,
-                ParentOfficeID = officeDTO.ParentOfficeID ?? null,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
+            logHelp.Log(logHelp.getMessage(nameof(PostOffice)));
 
             try
             {
+                var office = new Office
+                {
+                    ID = officeDTO.ID,
+                    OfficeName = officeDTO.OfficeName,
+                    ParentOfficeID = officeDTO.ParentOfficeID ?? null,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+
                 _context.Office.Add(office);
                 await _context.SaveChangesAsync();
-                logHelp.Log(logHelp.getMessage("PostOffice", 500));
-                logHelp.Log(logHelp.getMessage("Error while creating new office"));
+                logHelp.Log(logHelp.getMessage(nameof(PostOffice), StatusCodes.Status201Created));
+                return CreatedAtAction(nameof(GetOffice), new { id = office.ID }, ItemToDTO(office));
             }
             catch(Exception ex)
             {
-                logHelp.Log(logHelp.getMessage("PostOffice", 500));
-                logHelp.Log(logHelp.getMessage("PostOffice", ex.Message));
-                return StatusCode(500);
+                logHelp.Log(logHelp.getMessage(nameof(PostOffice), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(PostOffice), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-
-            return CreatedAtAction(nameof(GetOffice), new { id = office.ID }, ItemToDTO(office));
         }
 
         // DELETE: api/Offices/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOffice(int id)
         {
-            logHelp.Log(logHelp.getMessage("DeleteOffice"));
+            logHelp.Log(logHelp.getMessage(nameof(DeleteOffice)));
+            
             try
             {
                 var office = await _context.Office.FindAsync(id);
+
                 if (office == null)
                 {
-                    logHelp.Log(logHelp.getMessage("DeleteOffice", 404));
+                    logHelp.Log(logHelp.getMessage(nameof(DeleteOffice), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(DeleteOffice), "Office was not Found"));
                     return NotFound();
                 }
                 else
                 {
                     _context.Office.Remove(office);
                     await _context.SaveChangesAsync();
+                    logHelp.Log(logHelp.getMessage(nameof(DeleteOffice), StatusCodes.Status204NoContent));
+                    return NoContent();
                 }
             }
             catch (Exception ex)
             {
-                logHelp.Log(logHelp.getMessage("DeleteOffice", 500));
-                logHelp.Log(logHelp.getMessage("DeleteOffice", ex.Message));
-                return StatusCode(500);
+                logHelp.Log(logHelp.getMessage(nameof(DeleteOffice), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(DeleteOffice), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            return NoContent();
         }
 
         private bool OfficeExists(int id)
         {
-            logHelp.Log(logHelp.getMessage("OfficeExists"));
+            logHelp.Log(logHelp.getMessage(nameof(OfficeExists)));
             return _context.Office.Any(e => e.ID == id);
         }
 

@@ -14,7 +14,6 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "MYSQL_CONNECTSTRING": "server=localhost; database=test;user=root;password=123456789",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },

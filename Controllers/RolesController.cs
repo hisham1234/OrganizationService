@@ -34,33 +34,38 @@ namespace Organization_Service.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RoleDTO>>> GetRoles()
         {
-            logHelp.Log(logHelp.getMessage("GetRoles"));
-            _logger.LogInformation(logHelp.getMessage("GetRoles"));
+            _logger.LogInformation(logHelp.getMessage(nameof(GetRoles)));
+            logHelp.Log(logHelp.getMessage(nameof(GetRoles)));
 
             try
             {
                 var findRoles = await _context.Role.Select(x => ItemToDTO(x)).ToListAsync();
+                
                 if (findRoles == null)
                 {
-                    logHelp.Log(logHelp.getMessage("GetRoles", 404));
-                    _logger.LogWarning(logHelp.getMessage("GetRoles", 404));
+                    _logger.LogWarning(logHelp.getMessage(nameof(GetRoles),StatusCodes.Status404NotFound));
+                    _logger.LogWarning(logHelp.getMessage(nameof(GetRoles),"Roles were not Found"));
+                    logHelp.Log(logHelp.getMessage(nameof(GetRoles), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(GetRoles), "Roles were not Found"));
                     return NotFound();
                 }
+                
                 var result = new
                 {
-                    response = findRoles,
+                    response = findRoles
                 };
-                logHelp.Log(logHelp.getMessage("GetRoles", 200));
-                _logger.LogInformation(logHelp.getMessage("GetRoles",200));
+                
+                _logger.LogInformation(logHelp.getMessage(nameof(GetRoles),StatusCodes.Status200OK));
+                logHelp.Log(logHelp.getMessage(nameof(GetRoles), StatusCodes.Status200OK));
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                logHelp.Log(logHelp.getMessage("GetRoles", 500));
-                logHelp.Log(logHelp.getMessage("GetRoles", ex.Message));
-                _logger.LogError(logHelp.getMessage("GetRoles", 500));
-                _logger.LogError(logHelp.getMessage("GetRoles", ex.Message));
-                return StatusCode(500);
+                _logger.LogError(logHelp.getMessage(nameof(GetRoles),StatusCodes.Status500InternalServerError));
+                _logger.LogError(logHelp.getMessage(nameof(GetRoles), ex.Message));
+                logHelp.Log(logHelp.getMessage(nameof(GetRoles), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(GetRoles), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -68,32 +73,37 @@ namespace Organization_Service.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<RoleDTO>> GetRole(int id)
         {
-            logHelp.Log(logHelp.getMessage("GetRole"));
-            _logger.LogInformation(logHelp.getMessage("GetRole"));
+            _logger.LogInformation(logHelp.getMessage(nameof(GetRole)));
+            logHelp.Log(logHelp.getMessage(nameof(GetRole)));
+
             try
             {
                 var role = await _context.Role.FindAsync(id);
+
                 if (role == null || !RoleExists(id))
                 {
-                    logHelp.Log(logHelp.getMessage("GetRole", 404));
-                    _logger.LogWarning(logHelp.getMessage("GetRole",404));
+                    _logger.LogWarning(logHelp.getMessage(nameof(GetRole),StatusCodes.Status404NotFound));
+                    _logger.LogWarning(logHelp.getMessage(nameof(GetRole),StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(GetRole), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(GetRole), "Role was not Found"));
                     return NotFound();
                 }
+
                 var result = new
                 {
-                    response = role,
+                    response = ItemToDTO(role)
                 };
-                logHelp.Log(logHelp.getMessage("GetRole", 200));
-                _logger.LogInformation(logHelp.getMessage("GetRole",200));
+                _logger.LogInformation(logHelp.getMessage(nameof(GetRole),StatusCodes.Status200OK));
+                logHelp.Log(logHelp.getMessage(nameof(GetRole), StatusCodes.Status200OK));
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                logHelp.Log(logHelp.getMessage("GetRole", 500));
-                logHelp.Log(logHelp.getMessage("GetRole", ex.Message));
-                _logger.LogError(logHelp.getMessage("GetRole", 500));
-                _logger.LogError(logHelp.getMessage("GetRole", ex.Message));
-                return StatusCode(500);
+                _logger.LogError(logHelp.getMessage(nameof(GetRole),StatusCodes.Status500InternalServerError));
+                _logger.LogError(logHelp.getMessage(nameof(GetRole), ex.Message));
+                logHelp.Log(logHelp.getMessage(nameof(GetRole), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(GetRole), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -102,25 +112,27 @@ namespace Organization_Service.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutRole(int id, RoleDTO roleDTO)
         {
-            logHelp.Log(logHelp.getMessage("PutRole"));
-            _logger.LogInformation(logHelp.getMessage("PutRole"));
-            var role = await _context.Role.FindAsync(id);
+            logHelp.Log(logHelp.getMessage(nameof(PutRole)));
+            _logger.LogInformation(logHelp.getMessage(nameof(PutRole)));
+
             try
             {
+                var role = await _context.Role.FindAsync(id);
+
                 if (role == null || !RoleExists(id))
                 {
-                    logHelp.Log(logHelp.getMessage("PutRole", 500));
-                    logHelp.Log(logHelp.getMessage("PutRole", "Role was not Found"));
-                    _logger.LogError(logHelp.getMessage("PutRole", 500));
-                    _logger.LogError(logHelp.getMessage("PutRole", "Role was not Found"));
+                    _logger.LogError(logHelp.getMessage(nameof(PutRole),StatusCodes.Status404NotFound));
+                    _logger.LogError(logHelp.getMessage(nameof(PutRole), "Role was not Found"));
+                    logHelp.Log(logHelp.getMessage(nameof(PutRole), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(PutRole), "Role was not Found"));
                     return NotFound();
                 }
                 else if (id != roleDTO.ID)
                 {
-                    logHelp.Log(logHelp.getMessage("PutRole", 500));
-                    logHelp.Log(logHelp.getMessage("PutRole", "Role was not Found"));
-                    _logger.LogError(logHelp.getMessage("PutRole", 500));
-                    _logger.LogError(logHelp.getMessage("PutRole", "Role was not Found"));
+                    _logger.LogError(logHelp.getMessage(nameof(PutRole),StatusCodes.Status400BadRequest));
+                    _logger.LogError(logHelp.getMessage(nameof(PutRole), "Role was not Found"));
+                    logHelp.Log(logHelp.getMessage(nameof(PutRole), StatusCodes.Status400BadRequest));
+                    logHelp.Log(logHelp.getMessage(nameof(PutRole), "RoleID does not match"));
                     return BadRequest();
                 }
                 else
@@ -128,18 +140,18 @@ namespace Organization_Service.Controllers
                     role.ID = roleDTO.ID;
                     role.RoleName = roleDTO.RoleName;
                     role.UpdatedAt = DateTime.Now;
-                    _logger.LogInformation(logHelp.getMessage("PutRole", 200));
+                    _logger.LogInformation(logHelp.getMessage(nameof(PutRole),StatusCodes.Status200OK));
 
                     await _context.SaveChangesAsync();
                 }
             }
             catch(Exception ex)
             {
-                logHelp.Log(logHelp.getMessage("PutRole", 500));
-                logHelp.Log(logHelp.getMessage("PutRole", ex.Message));
-                _logger.LogError(logHelp.getMessage("PutRole", 500));
-                _logger.LogError(logHelp.getMessage("PutRole", ex.Message));
-                return StatusCode(500);
+                _logger.LogError(logHelp.getMessage(nameof(PutRole),StatusCodes.Status500InternalServerError));
+                _logger.LogError(logHelp.getMessage(nameof(PutRole), ex.Message));
+                logHelp.Log(logHelp.getMessage(nameof(PutRole), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(PutRole), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
             return NoContent();
         }
@@ -149,66 +161,71 @@ namespace Organization_Service.Controllers
         [HttpPost]
         public async Task<ActionResult<RoleDTO>> PostRole(RoleDTO roleDTO)
         {
-            logHelp.Log(logHelp.getMessage("PostRole"));
-            _logger.LogInformation(logHelp.getMessage("PostRole"));
-            var role = new Role
-            {
-                ID = roleDTO.ID,
-                RoleName = roleDTO.RoleName,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
+            logHelp.Log(logHelp.getMessage(nameof(PostRole)));
+            _logger.LogInformation(logHelp.getMessage(nameof(PostRole)));
 
             try
             {
+                var role = new Role
+                {
+                    ID = roleDTO.ID,
+                    RoleName = roleDTO.RoleName,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+
                 _context.Role.Add(role);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation(logHelp.getMessage("PostRole", 200));
+                logHelp.Log(logHelp.getMessage(nameof(PostRole), StatusCodes.Status201Created));
+                _logger.LogInformation(logHelp.getMessage(nameof(PostRole),StatusCodes.Status201Created));
+
+                return CreatedAtAction(nameof(GetRole), new { id = role.ID }, ItemToDTO(role));
             }
             catch (Exception ex)
             {
-                logHelp.Log(logHelp.getMessage("PostRole", 500));
-                logHelp.Log(logHelp.getMessage("PostRole", ex.Message));
-                _logger.LogError(logHelp.getMessage("PostRole", 500));
-                _logger.LogError(logHelp.getMessage("PostRole", ex.Message));
-                return StatusCode(500);
+                logHelp.Log(logHelp.getMessage(nameof(PostRole), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(PostRole), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            return CreatedAtAction(nameof(GetRole), new { id = role.ID }, ItemToDTO(role));
         }
 
         // DELETE: api/Roles/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRole(int id)
         {
-            logHelp.Log(logHelp.getMessage("DeleteRole"));
-            _logger.LogInformation(logHelp.getMessage("DeleteRole"));
-
+            _logger.LogInformation(logHelp.getMessage(nameof(DeleteRole)));
+            logHelp.Log(logHelp.getMessage(nameof(DeleteRole)));
 
             try
             {
                 var role = await _context.Role.FindAsync(id);
+
                 if (role == null)
                 {
-                    _logger.LogWarning(logHelp.getMessage("DeleteRole", 404));
-                    logHelp.Log(logHelp.getMessage("DeleteRole", 404));
+                    _logger.LogWarning(logHelp.getMessage(nameof(DeleteRole),StatusCodes.Status404NotFound));
+                    _logger.LogWarning(logHelp.getMessage(nameof(DeleteRole), "Role was not Found"));
+
+                    logHelp.Log(logHelp.getMessage(nameof(DeleteRole), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(DeleteRole), "Role was not Found"));
                     return NotFound();
                 }
                 else
                 {
                     _context.Role.Remove(role);
-                    _logger.LogInformation(logHelp.getMessage("DeleteRole", 200));
+                    _logger.LogInformation(logHelp.getMessage(nameof(DeleteRole),StatusCodes.Status204NoContent));
                     await _context.SaveChangesAsync();
+                    logHelp.Log(logHelp.getMessage(nameof(DeleteRole), StatusCodes.Status204NoContent));
+                    return NoContent();
                 }
             }
             catch (Exception ex)
             {
-                logHelp.Log(logHelp.getMessage("DeleteRole", 500));
-                logHelp.Log(logHelp.getMessage("DeleteRole", ex.Message));
-                _logger.LogError(logHelp.getMessage("DeleteRole", 500));
-                _logger.LogError(logHelp.getMessage("DeleteRole", ex.Message));
-                return StatusCode(500);
+                logHelp.Log(logHelp.getMessage(nameof(DeleteRole), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(DeleteRole), ex.Message));
+                _logger.LogInformation(logHelp.getMessage(nameof(DeleteRole), StatusCodes.Status500InternalServerError));
+                _logger.LogInformation(logHelp.getMessage(nameof(DeleteRole), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            return NoContent();
         }
 
         private bool RoleExists(int id)

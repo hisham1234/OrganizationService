@@ -30,6 +30,9 @@ namespace Organization_Service
         public void ConfigureServices(IServiceCollection services)
         {
 
+            // Enable log in azure application insights
+            services.AddApplicationInsightsTelemetry();
+
             // enabled CORS policy any origin
             services.AddCors(options => options.AddPolicy(name: allowOriginsAll, builder =>
             {

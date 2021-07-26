@@ -20,6 +20,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.4" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,4 +28,7 @@
     <Folder Include="Models\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Microsoft.ApplicationInsights.AspNetCore" />
+  </ItemGroup>
 </Project>

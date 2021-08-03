@@ -89,6 +89,46 @@ namespace Organization_Service.Controllers
             }
         }
 
+        // GET: api/Offices/5/users
+        [HttpGet("{id}/users")]
+        public async Task<ActionResult<IEnumerable<OfficeDTO>>> GetSpecificOfficeUsers(int id)
+        {
+            logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers)));
+
+            try
+            {
+                if (OfficeExists(id) == false)
+                {
+                    logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), "Office was not Found"));
+                    return NotFound();
+                }
+                
+                var findUsers = await _context.User.Where(u => u.OfficeID == id).Select(u => ItemToDTO(u)).ToListAsync();
+
+                if (findUsers == null)
+                {
+                    logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), "Users was not Found"));
+                    return NotFound();
+                }
+
+                var result = new
+                {
+                    response = findUsers
+                };
+                
+                logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status200OK));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), ex.Message));
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
         // PUT: api/Offices/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -100,7 +140,7 @@ namespace Organization_Service.Controllers
             {
                 var office = await _context.Office.FindAsync(id);
 
-                if (office == null|| !OfficeExists(id))
+                if (office == null || !OfficeExists(id))
                 {
                     logHelp.Log(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status404NotFound));
                     logHelp.Log(logHelp.getMessage(nameof(PutOffice), "Office was not Found"));
@@ -207,6 +247,18 @@ namespace Organization_Service.Controllers
             ID = office.ID,
             OfficeName = office.OfficeName,
             ParentOfficeID = office.ParentOfficeID
+        };
+
+        private static UserDTO ItemToDTO(User user) => new UserDTO
+        {
+            ID = user.ID,
+            Email = user.Email,
+            Password = user.Password,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            OfficeID = user.OfficeID,
+            //Roles = user.Roles
+            RolesID = user.Roles.Select(r => r.ID).ToList()
         };
     }
 }

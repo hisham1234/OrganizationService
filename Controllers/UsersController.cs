@@ -33,7 +33,7 @@ namespace Organization_Service.Controllers
 
             try
             {
-                var findUsers = await _context.User.Select(x => ItemToDTO(x)).ToListAsync();
+                var findUsers = await _context.User.AsNoTracking().Include(u => u.Roles).Select(x => ItemToDTO(x)).ToListAsync();
                 
                 if (findUsers == null)
                 {
@@ -66,9 +66,9 @@ namespace Organization_Service.Controllers
 
             try
             {
-                var user = await _context.User.FindAsync(id);
+                var findUser = await _context.User.Where(u => u.ID == id).Include(u => u.Roles).Select(u => ItemToDTO(u)).FirstOrDefaultAsync();
 
-                if (user == null || !UserExists(id))
+                if (findUser == null || !UserExists(id))
                 {
                     logHelp.Log(logHelp.getMessage(nameof(GetUser), StatusCodes.Status404NotFound));
                     logHelp.Log(logHelp.getMessage(nameof(GetUser), "User was not Found"));
@@ -77,7 +77,7 @@ namespace Organization_Service.Controllers
 
                 var result = new
                 {
-                    response = ItemToDTO(user)
+                    response = findUser
                 };
 
                 logHelp.Log(logHelp.getMessage(nameof(GetUser), StatusCodes.Status200OK));
@@ -108,28 +108,51 @@ namespace Organization_Service.Controllers
                     logHelp.Log(logHelp.getMessage(nameof(PutUser), "User was not Found"));
                     return NotFound();
                 }
-                else if (id != userDTO.ID)
+
+                if (id != userDTO.ID)
                 {
                     logHelp.Log(logHelp.getMessage(nameof(PutUser), StatusCodes.Status400BadRequest));
                     logHelp.Log(logHelp.getMessage(nameof(PutUser), "UserID does not match"));
                     return BadRequest();
                 }
+
+                if (userDTO.RolesID != null)
+                {
+                    userDTO.RolesID.Sort();
+
+                    var findRoles = await _context.Role.AsNoTracking().Where(r => userDTO.RolesID.Contains(r.ID)).OrderBy(r => r.ID).ToListAsync();
+
+                    if (findRoles == null)
+                    {
+                        logHelp.Log(logHelp.getMessage(nameof(PutUser), StatusCodes.Status404NotFound));
+                        logHelp.Log(logHelp.getMessage(nameof(PutUser), "Roles was not Found"));
+                        return NotFound();
+                    }
+
+                    if (userDTO.RolesID.SequenceEqual(findRoles.Select(r => r.ID).ToList()) == false)
+                    {
+                        logHelp.Log(logHelp.getMessage(nameof(PutUser), StatusCodes.Status400BadRequest));
+                        logHelp.Log(logHelp.getMessage(nameof(PutUser), "RoleID does not match"));
+                        return BadRequest();
+                    }
+
+                    user.Roles = findRoles;
+                }
                 else
                 {
-                    user.ID = userDTO.ID;
-                    user.Email = String.IsNullOrWhiteSpace(userDTO.Email) == false ? userDTO.Email : user.Email;
-                    user.Password = String.IsNullOrWhiteSpace(userDTO.Password) == false ? StringEncryption(userDTO.Password) : user.Password;     // Password Encryption
-                    user.FirstName = String.IsNullOrWhiteSpace(userDTO.FirstName) == false ? userDTO.FirstName : user.FirstName;
-                    user.LastName = String.IsNullOrWhiteSpace(userDTO.LastName) == false ? userDTO.LastName : user.LastName;
-                    user.OfficeID = userDTO.OfficeID != null ? userDTO.OfficeID : user.OfficeID;
-                    user.Roles = userDTO.Roles;
-                    //user.Roles = userDTO.RolesID;
-                    //user.Role_ID = userDTO.Role_ID != null ? userDTO.Role_ID : user.Role_ID;
-                    user.UpdatedAt = DateTime.Now;
-
-                    await _context.SaveChangesAsync();
-                    return NoContent();
+                    user.Roles = user.Roles;
                 }
+
+                user.ID = userDTO.ID;
+                user.Email = String.IsNullOrWhiteSpace(userDTO.Email) == false ? userDTO.Email : user.Email;
+                user.Password = String.IsNullOrWhiteSpace(userDTO.Password) == false ? StringEncryption(userDTO.Password) : user.Password;     // Password Encryption
+                user.FirstName = String.IsNullOrWhiteSpace(userDTO.FirstName) == false ? userDTO.FirstName : user.FirstName;
+                user.LastName = String.IsNullOrWhiteSpace(userDTO.LastName) == false ? userDTO.LastName : user.LastName;
+                user.OfficeID = userDTO.OfficeID != null ? userDTO.OfficeID : user.OfficeID;
+                user.UpdatedAt = DateTime.Now;
+                
+                await _context.SaveChangesAsync();
+                return NoContent();
             }
             catch (Exception ex)
             {
@@ -156,9 +179,6 @@ namespace Organization_Service.Controllers
                     FirstName = userDTO.FirstName,
                     LastName = userDTO.LastName,
                     OfficeID = userDTO.OfficeID ?? null,
-                    Roles = userDTO.Roles,
-                    //Roles = userDTO.RolesID,
-                    //Role_ID = userDTO.Role_ID ?? null,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
@@ -221,8 +241,7 @@ namespace Organization_Service.Controllers
             FirstName = user.FirstName,
             LastName = user.LastName,
             OfficeID = user.OfficeID,
-            Roles = user.Roles
-            //RolesID = user.Roles
+            RolesID = user.Roles.Select(r => r.ID).ToList()
         };
 
         private string StringEncryption(string target)

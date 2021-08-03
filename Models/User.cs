@@ -67,7 +67,7 @@ namespace Organization_Service.Models
         public int? OfficeID { get; set; }
 
         //public int? Role_ID { get; set; }
-        public ICollection<Role> Roles { get; set; }
-        //public List<int> RolesID { get; set; }
+        //public ICollection<Role> Roles { get; set; }
+        public List<int> RolesID { get; set; }
     }
 }

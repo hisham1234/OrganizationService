@@ -63,7 +63,7 @@ Data Transfer Object(DTO) is defined as follows. CreatedAt and UpdateAt are not 
 # Getting Started
 
 ### 1. Installation process
-If you want to run it on a local PC, download and install MySQL 8.0‚ÆPostman on the local PC.
+If you want to run it on a local PC, download and install MySQL 8.0??Postman on the local PC.
 
 - [MySQL Community Server 8.0.25](https://dev.mysql.com/downloads/mysql/)
 - [Postman](https://www.postman.com/downloads/)
@@ -74,6 +74,8 @@ If you want to run it on a local PC, download and install MySQL 8.0‚ÆPostman on 
 |Variable|Value|
 |:--|:--|
 |MYSQL_CONNECTSTRING|server=*{ServerName}*;database=*{DatabaseName}*;user=*{UserName}*;password=*{UserPassword}*|
+|APPINSIGHTS_INSTRUMENTATIONKEY|This value is normally configured automatically at the creation of the appinsights|
+|APPLICATIONINSIGHTS_CONNECTION_STRING|This value is normally configured automatically at the creation of the appinsights|
 
 ***
 

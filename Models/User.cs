@@ -34,14 +34,8 @@ namespace Organization_Service.Models
         [StringLength(50, ErrorMessage = "LastName cannot be longer than 50 characters.")]
         public string LastName { get; set; }
 
-        //public int? Office_ID { get; set; }
-        //[ForeignKey("Office_ID")]
         public int? OfficeID { get; set; }
         public Office Office { get; set; }
-
-        //public int? Role_ID { get; set; }
-        //[ForeignKey("Role_ID")]
-        //public Role Role { get; set; }
 
         [Column(TypeName = "datetime")]
         public DateTime CreatedAt { get; set; }
@@ -66,8 +60,6 @@ namespace Organization_Service.Models
 
         public int? OfficeID { get; set; }
 
-        //public int? Role_ID { get; set; }
-        //public ICollection<Role> Roles { get; set; }
         public List<int> RolesID { get; set; }
     }
 }

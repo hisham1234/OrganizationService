@@ -44,10 +44,11 @@ namespace Organization_Service.Controllers
                 
                 if (findOffices == null)
                 {
-                    logHelp.Log(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status404NotFound));
-                    logHelp.Log(logHelp.getMessage(nameof(GetOffices), "Offices were not Found"));
                     _logger.LogWarning(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status404NotFound));
                     _logger.LogWarning(logHelp.getMessage(nameof(GetOffices), "Offices were not Found"));
+
+                    logHelp.Log(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(GetOffices), "Offices were not Found"));
 
                     return NotFound();
                 }
@@ -56,19 +57,19 @@ namespace Organization_Service.Controllers
                 {
                     response = findOffices
                 };
-                logHelp.Log(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status200OK));
-                _logger.LogInformation(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status200OK));
 
+                _logger.LogInformation(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status200OK));
+                logHelp.Log(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status200OK));
                 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                logHelp.Log(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status500InternalServerError));
-                logHelp.Log(logHelp.getMessage(nameof(GetOffices), ex.Message));
-        
                 _logger.LogError(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status500InternalServerError));
                 _logger.LogError(logHelp.getMessage(nameof(GetOffices), ex.Message));
+
+                logHelp.Log(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(GetOffices), ex.Message));
 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -92,6 +93,7 @@ namespace Organization_Service.Controllers
 
                     logHelp.Log(logHelp.getMessage(nameof(GetOffice), StatusCodes.Status404NotFound));
                     logHelp.Log(logHelp.getMessage(nameof(GetOffice), "Office was not Found"));
+
                     return NotFound();
                 }
 
@@ -99,16 +101,76 @@ namespace Organization_Service.Controllers
                 {
                     response = ItemToDTO(office)
                 };
+                
                 _logger.LogInformation(logHelp.getMessage(nameof(GetOffice), StatusCodes.Status200OK));
                 logHelp.Log(logHelp.getMessage(nameof(GetOffice), StatusCodes.Status200OK));
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
                 _logger.LogError(logHelp.getMessage(nameof(GetOffice), StatusCodes.Status500InternalServerError));
                 _logger.LogError(logHelp.getMessage(nameof(GetOffice), ex.Message));
+                
                 logHelp.Log(logHelp.getMessage(nameof(GetOffice), StatusCodes.Status500InternalServerError));
                 logHelp.Log(logHelp.getMessage(nameof(GetOffice), ex.Message));
+                
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        // GET: api/Offices/5/users
+        [HttpGet("{id}/users")]
+        public async Task<ActionResult<IEnumerable<OfficeDTO>>> GetSpecificOfficeUsers(int id)
+        {
+            _logger.LogInformation(logHelp.getMessage(nameof(GetSpecificOfficeUsers)));
+
+            logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers)));
+
+            try
+            {
+                if (OfficeExists(id) == false)
+                {
+                    _logger.LogWarning(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status404NotFound));
+                    _logger.LogWarning(logHelp.getMessage(nameof(GetSpecificOfficeUsers), "Office was not found"));
+
+                    logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), "Office was not Found"));
+
+                    return NotFound();
+                }
+                
+                var findUsers = await _context.User.Where(u => u.OfficeID == id).Include(u => u.Roles).Select(u => ItemToDTO(u)).ToListAsync();
+
+                if (findUsers == null)
+                {
+                    _logger.LogWarning(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status404NotFound));
+                    _logger.LogWarning(logHelp.getMessage(nameof(GetSpecificOfficeUsers), "Users was not found"));
+
+                    logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status404NotFound));
+                    logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), "Users was not Found"));
+
+                    return NotFound();
+                }
+
+                var result = new
+                {
+                    response = findUsers
+                };
+
+                _logger.LogInformation(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status200OK));
+                logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status200OK));
+                
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status500InternalServerError));
+                _logger.LogError(logHelp.getMessage(nameof(GetSpecificOfficeUsers), ex.Message));
+
+                logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(GetSpecificOfficeUsers), ex.Message));
+
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -125,7 +187,7 @@ namespace Organization_Service.Controllers
             {
                 var office = await _context.Office.FindAsync(id);
 
-                if (office == null|| !OfficeExists(id))
+                if (office == null || !OfficeExists(id))
                 {
 
                     _logger.LogError(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status404NotFound));
@@ -133,14 +195,17 @@ namespace Organization_Service.Controllers
 
                     logHelp.Log(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status404NotFound));
                     logHelp.Log(logHelp.getMessage(nameof(PutOffice), "Office was not Found"));
+
                     return NotFound();
                 }
                 else if (id != officeDTO.ID)
                 {
                     _logger.LogError(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status400BadRequest));
                     _logger.LogError(logHelp.getMessage(nameof(PutOffice), "Office was not Found"));
+
                     logHelp.Log(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status400BadRequest));
                     logHelp.Log(logHelp.getMessage(nameof(PutOffice), "OfficeID does not match"));
+                    
                     return BadRequest();
                 }
                 else
@@ -151,9 +216,10 @@ namespace Organization_Service.Controllers
                     office.UpdatedAt = DateTime.Now;
 
                     await _context.SaveChangesAsync();
+                    
                     _logger.LogInformation(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status204NoContent));
-
                     logHelp.Log(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status204NoContent));
+
                     return NoContent();
                 }
             }
@@ -162,8 +228,10 @@ namespace Organization_Service.Controllers
 
                 _logger.LogError(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status500InternalServerError));
                 _logger.LogError(logHelp.getMessage(nameof(PutOffice), ex.Message));
+                
                 logHelp.Log(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status500InternalServerError));
                 logHelp.Log(logHelp.getMessage(nameof(PutOffice), ex.Message));
+
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -189,17 +257,20 @@ namespace Organization_Service.Controllers
 
                 _context.Office.Add(office);
                 await _context.SaveChangesAsync();
-                logHelp.Log(logHelp.getMessage(nameof(PostOffice), StatusCodes.Status201Created));
+                
                 _logger.LogInformation(logHelp.getMessage(nameof(PostOffice), StatusCodes.Status201Created));
+                logHelp.Log(logHelp.getMessage(nameof(PostOffice), StatusCodes.Status201Created));
 
                 return CreatedAtAction(nameof(GetOffice), new { id = office.ID }, ItemToDTO(office));
             }
             catch(Exception ex)
             {
-                logHelp.Log(logHelp.getMessage(nameof(PostOffice), StatusCodes.Status500InternalServerError));
-                logHelp.Log(logHelp.getMessage(nameof(PostOffice), ex.Message));
                 _logger.LogError(logHelp.getMessage(nameof(PostOffice), StatusCodes.Status500InternalServerError));
                 _logger.LogError(logHelp.getMessage(nameof(PostOffice), ex.Message));
+
+                logHelp.Log(logHelp.getMessage(nameof(PostOffice), StatusCodes.Status500InternalServerError));
+                logHelp.Log(logHelp.getMessage(nameof(PostOffice), ex.Message));
+                
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -219,16 +290,20 @@ namespace Organization_Service.Controllers
                 {
                     _logger.LogWarning(logHelp.getMessage(nameof(DeleteOffice), StatusCodes.Status404NotFound));
                     _logger.LogWarning(logHelp.getMessage(nameof(DeleteOffice), "Office was not found"));
+                    
                     logHelp.Log(logHelp.getMessage(nameof(DeleteOffice), StatusCodes.Status404NotFound));
                     logHelp.Log(logHelp.getMessage(nameof(DeleteOffice), "Office was not Found"));
+                    
                     return NotFound();
                 }
                 else
                 {
                     _context.Office.Remove(office);
-                    _logger.LogInformation(logHelp.getMessage(nameof(DeleteOffice), StatusCodes.Status204NoContent));
                     await _context.SaveChangesAsync();
+
+                    _logger.LogInformation(logHelp.getMessage(nameof(DeleteOffice), StatusCodes.Status204NoContent));
                     logHelp.Log(logHelp.getMessage(nameof(DeleteOffice), StatusCodes.Status204NoContent));
+
                     return NoContent();
                 }
             }
@@ -236,8 +311,10 @@ namespace Organization_Service.Controllers
             {
                 _logger.LogError(logHelp.getMessage(nameof(DeleteOffice), StatusCodes.Status500InternalServerError));
                 _logger.LogError(logHelp.getMessage(nameof(DeleteOffice), ex.Message));
+                
                 logHelp.Log(logHelp.getMessage(nameof(DeleteOffice), StatusCodes.Status500InternalServerError));
                 logHelp.Log(logHelp.getMessage(nameof(DeleteOffice), ex.Message));
+                
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -252,6 +329,17 @@ namespace Organization_Service.Controllers
             ID = office.ID,
             OfficeName = office.OfficeName,
             ParentOfficeID = office.ParentOfficeID
+        };
+
+        private static UserDTO ItemToDTO(User user) => new UserDTO
+        {
+            ID = user.ID,
+            Email = user.Email,
+            Password = user.Password,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            OfficeID = user.OfficeID,
+            RolesID = user.Roles.Select(r => r.ID).ToList()
         };
     }
 }

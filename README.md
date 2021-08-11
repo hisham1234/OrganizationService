@@ -12,17 +12,18 @@ API references is defined as follows.
 |:--|:--|
 |Create User|POST /organization-service/api/users|
 |Get User List|GET /organization-service/api/users|
-|Get User|POST /organization-service/api/users/{userId}|
+|Get User|GET /organization-service/api/users/{userId}|
 |Update User|PUT /organization-service/api/users/{userId}|
 |Delete User|DELETE /organization-service/api/users/{userId}|
 |Create Office|POST /organization-service/api/offices|
 |Get Office List|GET /organization-service/api/offices|
-|Get Office|POST /organization-service/api/offices/{officeId}|
+|Get Office|GET /organization-service/api/offices/{officeId}|
+|Get Users List of Specific Office|GET /organization-service/api/offices/{officeId}/users|
 |Update Office|PUT /organization-service/api/offices/{officeId}|
 |Delete Office|DELETE /organization-service/api/offices/{officeId}|
 |Create Role|POST /organization-service/api/roles|
 |Get Role List|GET /organization-service/api/roles|
-|Get Role|POST /organization-service/api/roles/{roleId}|
+|Get Role|GET /organization-service/api/roles/{roleId}|
 |Update Role|PUT /organization-service/api/roleds/{roleId}|
 |Delete Role|DELETE /organization-service/api/roles/{roleId}|
 

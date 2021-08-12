@@ -11,6 +11,7 @@ using Organization_Service.Models;
 using Organization_Service.Helpers;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
+using AutoMapper;
 
 namespace Organization_Service.Controllers
 {
@@ -21,15 +22,17 @@ namespace Organization_Service.Controllers
         private readonly ILogger _logger;
         private readonly TelemetryClient _telemetry;
         private readonly OrganizationContext _context;
+        private readonly IMapper _mapper;
         private LoggerHelper logHelp;
 
-        public UsersController(OrganizationContext context, ILogger<UsersController> logger, TelemetryClient telemetry)
+        public UsersController(OrganizationContext context, ILogger<UsersController> logger, TelemetryClient telemetry, IMapper mapper)
         {
             // Inject telemetry and logger is necessary in order to add
             // specific log in Azure ApplicationInsights
             _telemetry = telemetry;
             _logger = logger;
             _context = context;
+            _mapper = mapper;
             logHelp = new LoggerHelper();
         }
 
@@ -38,30 +41,24 @@ namespace Organization_Service.Controllers
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetUsers)));
-            logHelp.Log(logHelp.getMessage(nameof(GetUsers)));
 
             try
             {
-                var findUsers = await _context.User.AsNoTracking().Include(u => u.Roles).Select(x => ItemToDTO(x)).ToListAsync();
+                var findUsers = await _context.User.AsNoTracking().Include(u => u.Roles).ToListAsync();
                 
                 if (findUsers == null)
                 {
                     _logger.LogWarning(logHelp.getMessage(nameof(GetUsers),StatusCodes.Status404NotFound));
                     _logger.LogWarning(logHelp.getMessage(nameof(GetUsers),"Users were not Found"));
 
-                    logHelp.Log(logHelp.getMessage(nameof(GetUsers), StatusCodes.Status404NotFound));
-                    logHelp.Log(logHelp.getMessage(nameof(GetUsers), "Users were not Found"));
-
                     return NotFound();
                 }
-                
                 var result = new
                 {
-                    response = findUsers
+                    response = _mapper.Map<IEnumerable<UserDTOOutput>>(findUsers)
                 };
 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetUsers),StatusCodes.Status200OK));
-                logHelp.Log(logHelp.getMessage(nameof(GetUsers), StatusCodes.Status200OK));
 
                 return Ok(result);
             }
@@ -70,9 +67,6 @@ namespace Organization_Service.Controllers
                 _logger.LogError(logHelp.getMessage(nameof(GetUsers),StatusCodes.Status500InternalServerError));
                 _logger.LogError(logHelp.getMessage(nameof(GetUsers), ex.Message));
 
-                logHelp.Log(logHelp.getMessage(nameof(GetUsers), StatusCodes.Status500InternalServerError));
-                logHelp.Log(logHelp.getMessage(nameof(GetUsers), ex.Message));
-                
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -82,40 +76,32 @@ namespace Organization_Service.Controllers
         public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetUser)));
-            logHelp.Log(logHelp.getMessage(nameof(GetUser)));
 
             try
             {
-                var findUser = await _context.User.Where(u => u.ID == id).Include(u => u.Roles).Select(u => ItemToDTO(u)).FirstOrDefaultAsync();
+                var findUser = await _context.User.Where(u => u.ID == id).FirstOrDefaultAsync();
 
                 if (findUser == null || !UserExists(id))
                 {
                     _logger.LogWarning(logHelp.getMessage(nameof(GetUser),StatusCodes.Status404NotFound));
                     _logger.LogWarning(logHelp.getMessage(nameof(GetUser), "User was not Found"));
                     
-                    logHelp.Log(logHelp.getMessage(nameof(GetUser), StatusCodes.Status404NotFound));
-                    logHelp.Log(logHelp.getMessage(nameof(GetUser), "User was not Found"));
-                    
                     return NotFound();
                 }
 
                 var result = new
                 {
-                    response = findUser
+                    response = _mapper.Map<UserDTOOutput>(findUser)
                 };
                 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetUser),StatusCodes.Status200OK));
-                logHelp.Log(logHelp.getMessage(nameof(GetUser), StatusCodes.Status200OK));
-                
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
                 _logger.LogError(logHelp.getMessage(nameof(GetUser),StatusCodes.Status500InternalServerError));
                 _logger.LogError(logHelp.getMessage(nameof(GetUser), ex.Message));
-                
-                logHelp.Log(logHelp.getMessage(nameof(GetUser), StatusCodes.Status500InternalServerError));
-                logHelp.Log(logHelp.getMessage(nameof(GetUser), ex.Message));
                 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -127,8 +113,7 @@ namespace Organization_Service.Controllers
         public async Task<IActionResult> PutUser(int id, UserDTO userDTO)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(PutUser)));
-            logHelp.Log(logHelp.getMessage(nameof(PutUser)));
-            
+ 
             try
             {
                 var user = await _context.User.FindAsync(id);
@@ -138,9 +123,6 @@ namespace Organization_Service.Controllers
                     _logger.LogWarning(logHelp.getMessage(nameof(PutUser),StatusCodes.Status404NotFound));
                     _logger.LogWarning(logHelp.getMessage(nameof(PutUser), "User was not Found"));
 
-                    logHelp.Log(logHelp.getMessage(nameof(PutUser), StatusCodes.Status404NotFound));
-                    logHelp.Log(logHelp.getMessage(nameof(PutUser), "User was not Found"));
-                    
                     return NotFound();
                 }
 
@@ -149,9 +131,7 @@ namespace Organization_Service.Controllers
                     _logger.LogError(logHelp.getMessage(nameof(PutUser),StatusCodes.Status400BadRequest));
                     _logger.LogError(logHelp.getMessage(nameof(PutUser), "User was not Found"));
                     
-                    logHelp.Log(logHelp.getMessage(nameof(PutUser), StatusCodes.Status400BadRequest));
-                    logHelp.Log(logHelp.getMessage(nameof(PutUser), "UserID does not match"));
-                    
+
                     return BadRequest();
                 }
 
@@ -166,9 +146,6 @@ namespace Organization_Service.Controllers
                         _logger.LogWarning(logHelp.getMessage(nameof(PutUser), StatusCodes.Status404NotFound));
                         _logger.LogWarning(logHelp.getMessage(nameof(PutUser), "Roles was not Found"));
 
-                        logHelp.Log(logHelp.getMessage(nameof(PutUser), StatusCodes.Status404NotFound));
-                        logHelp.Log(logHelp.getMessage(nameof(PutUser), "Roles was not Found"));
-                        
                         return NotFound();
                     }
 
@@ -176,10 +153,7 @@ namespace Organization_Service.Controllers
                     {
                         _logger.LogError(logHelp.getMessage(nameof(PutUser), StatusCodes.Status400BadRequest));
                         _logger.LogError(logHelp.getMessage(nameof(PutUser), "RolesID does not match"));
-
-                        logHelp.Log(logHelp.getMessage(nameof(PutUser), StatusCodes.Status400BadRequest));
-                        logHelp.Log(logHelp.getMessage(nameof(PutUser), "RolesID does not match"));
-                        
+  
                         return BadRequest();
                     }
 
@@ -201,7 +175,6 @@ namespace Organization_Service.Controllers
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation(logHelp.getMessage(nameof(PutUser), StatusCodes.Status204NoContent));
-                logHelp.Log(logHelp.getMessage(nameof(PutUser), StatusCodes.Status204NoContent));
 
                 return NoContent();
             }
@@ -210,9 +183,6 @@ namespace Organization_Service.Controllers
                 _logger.LogError(logHelp.getMessage(nameof(PutUser),StatusCodes.Status500InternalServerError));
                 _logger.LogError(logHelp.getMessage(nameof(PutUser), ex.Message));
 
-                logHelp.Log(logHelp.getMessage(nameof(PutUser), StatusCodes.Status500InternalServerError));
-                logHelp.Log(logHelp.getMessage(nameof(PutUser), ex.Message));
-                
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -222,7 +192,6 @@ namespace Organization_Service.Controllers
         [HttpPost]
         public async Task<ActionResult<UserDTO>> PostUser(UserDTO userDTO)
         {
-            logHelp.Log(logHelp.getMessage(nameof(PostUser)));
             _logger.LogInformation(logHelp.getMessage(nameof(PostUser)));
 
             try
@@ -242,18 +211,14 @@ namespace Organization_Service.Controllers
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation(logHelp.getMessage(nameof(PostUser), StatusCodes.Status201Created));
-                logHelp.Log(logHelp.getMessage(nameof(PostUser), StatusCodes.Status201Created));
-
-                return CreatedAtAction(nameof(GetUser), new { id = user.ID }, ItemToDTO(user));
+             
+                return CreatedAtAction(nameof(GetUser), new { id = user.ID }, _mapper.Map<UserDTOOutput>(user));
             }
             catch (Exception ex)
             {
                 _logger.LogError(logHelp.getMessage(nameof(PostUser), StatusCodes.Status500InternalServerError));
                 _logger.LogError(logHelp.getMessage(nameof(PostUser), ex.Message));
-
-                logHelp.Log(logHelp.getMessage(nameof(PostUser), StatusCodes.Status500InternalServerError));
-                logHelp.Log(logHelp.getMessage(nameof(PostUser), ex.Message));
-                
+ 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -263,8 +228,6 @@ namespace Organization_Service.Controllers
         public async Task<IActionResult> DeleteUser(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(DeleteUser)));
-            logHelp.Log(logHelp.getMessage(nameof(DeleteUser)));
-
             try
             {
                 var user = await _context.User.FindAsync(id);
@@ -273,9 +236,7 @@ namespace Organization_Service.Controllers
                     _logger.LogWarning(logHelp.getMessage(nameof(DeleteUser),StatusCodes.Status404NotFound));
                     _logger.LogWarning(logHelp.getMessage(nameof(DeleteUser),"User was not Found"));
 
-                    logHelp.Log(logHelp.getMessage(nameof(DeleteUser), StatusCodes.Status404NotFound));
-                    logHelp.Log(logHelp.getMessage(nameof(DeleteUser), "User was not Found"));
-                    return NotFound();
+                   return NotFound();
                 }
                 else
                 {
@@ -284,18 +245,13 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation(logHelp.getMessage(nameof(DeleteUser), StatusCodes.Status204NoContent));
-                    logHelp.Log(logHelp.getMessage(nameof(DeleteUser), StatusCodes.Status204NoContent));
-                    
-                    return NoContent();
+                     return NoContent();
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(logHelp.getMessage(nameof(DeleteUser),StatusCodes.Status500InternalServerError));
                 _logger.LogError(logHelp.getMessage(nameof(DeleteUser), ex.Message));
-                
-                logHelp.Log(logHelp.getMessage(nameof(DeleteUser), StatusCodes.Status500InternalServerError));
-                logHelp.Log(logHelp.getMessage(nameof(DeleteUser), ex.Message));
                 
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -320,7 +276,6 @@ namespace Organization_Service.Controllers
         private string StringEncryption(string target)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(StringEncryption)));
-            logHelp.Log(logHelp.getMessage(nameof(StringEncryption)));
             byte[] salt = new byte[128 / 8];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(salt);

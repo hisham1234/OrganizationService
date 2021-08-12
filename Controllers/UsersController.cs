@@ -53,7 +53,6 @@ namespace Organization_Service.Controllers
 
                     return NotFound();
                 }
-                var test = _mapper.Map<IEnumerable<UserDTOOutput>>(findUsers);
                 var result = new
                 {
                     response = _mapper.Map<IEnumerable<UserDTOOutput>>(findUsers)

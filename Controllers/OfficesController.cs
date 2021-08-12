@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,9 +22,10 @@ namespace Organization_Service.Controllers
         private readonly ILogger _logger;
         private readonly TelemetryClient _telemetry;
         private readonly OrganizationContext _context;
+        private readonly IMapper _mapper;
         private LoggerHelper logHelp;
 
-        public OfficesController(OrganizationContext context, ILogger<OfficesController> logger, TelemetryClient telemetry)
+        public OfficesController(OrganizationContext context, ILogger<OfficesController> logger, TelemetryClient telemetry, IMapper mapper)
         {
             _telemetry = telemetry;
             _logger = logger;
@@ -155,7 +157,7 @@ namespace Organization_Service.Controllers
 
                 var result = new
                 {
-                    response = findUsers
+                    response = _mapper.Map <IEnumerable<UserDTOOutput>>(findUsers)
                 };
 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status200OK));

@@ -62,4 +62,26 @@ namespace Organization_Service.Models
 
         public List<int> RolesID { get; set; }
     }
+
+    public class UserDTOOutput
+    {
+
+        public int ID { get; set; }
+
+        public string Email { get; set; }
+
+        public string FirstName { get; set; }
+
+        public string LastName { get; set; }
+
+        public int? OfficeID { get; set; }
+
+        public Office Office { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public DateTime UpdatedAt { get; set; }
+
+        public ICollection<Role> Roles { get; set; }
+    }
 }

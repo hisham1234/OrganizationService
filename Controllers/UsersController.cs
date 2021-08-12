@@ -11,6 +11,7 @@ using Organization_Service.Models;
 using Organization_Service.Helpers;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
+using AutoMapper;
 
 namespace Organization_Service.Controllers
 {
@@ -21,15 +22,17 @@ namespace Organization_Service.Controllers
         private readonly ILogger _logger;
         private readonly TelemetryClient _telemetry;
         private readonly OrganizationContext _context;
+        private readonly IMapper _mapper;
         private LoggerHelper logHelp;
 
-        public UsersController(OrganizationContext context, ILogger<UsersController> logger, TelemetryClient telemetry)
+        public UsersController(OrganizationContext context, ILogger<UsersController> logger, TelemetryClient telemetry, IMapper mapper)
         {
             // Inject telemetry and logger is necessary in order to add
             // specific log in Azure ApplicationInsights
             _telemetry = telemetry;
             _logger = logger;
             _context = context;
+            _mapper = mapper;
             logHelp = new LoggerHelper();
         }
 
@@ -57,7 +60,7 @@ namespace Organization_Service.Controllers
                 
                 var result = new
                 {
-                    response = findUsers
+                    response = _mapper.Map<IEnumerable<UserDTOOutput>>(findUsers)
                 };
 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetUsers),StatusCodes.Status200OK));
@@ -101,7 +104,7 @@ namespace Organization_Service.Controllers
 
                 var result = new
                 {
-                    response = findUser
+                    response = _mapper.Map<UserDTOOutput>(findUser)
                 };
                 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetUser),StatusCodes.Status200OK));
@@ -244,7 +247,7 @@ namespace Organization_Service.Controllers
                 _logger.LogInformation(logHelp.getMessage(nameof(PostUser), StatusCodes.Status201Created));
                 logHelp.Log(logHelp.getMessage(nameof(PostUser), StatusCodes.Status201Created));
 
-                return CreatedAtAction(nameof(GetUser), new { id = user.ID }, ItemToDTO(user));
+                return CreatedAtAction(nameof(GetUser), new { id = user.ID }, _mapper.Map<UserDTOOutput>(user));
             }
             catch (Exception ex)
             {

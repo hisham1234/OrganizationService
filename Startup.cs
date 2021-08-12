@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Organization_Service.Models;
+using Organization_Service.Helpers;
 
 namespace Organization_Service
 {
@@ -46,6 +47,7 @@ namespace Organization_Service
             services.AddDbContext<OrganizationContext>(options =>
                 options.UseMySql(connectionString, serverVersion).EnableSensitiveDataLogging().EnableDetailedErrors());
             services.AddControllers();
+            services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Organization_Service", Version = "v1" });

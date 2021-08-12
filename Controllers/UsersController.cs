@@ -44,7 +44,7 @@ namespace Organization_Service.Controllers
 
             try
             {
-                var findUsers = await _context.User.AsNoTracking().Include(u => u.Roles).Select(x => ItemToDTO(x)).ToListAsync();
+                var findUsers = await _context.User.AsNoTracking().Include(u => u.Roles).ToListAsync();
                 
                 if (findUsers == null)
                 {
@@ -53,7 +53,7 @@ namespace Organization_Service.Controllers
 
                     return NotFound();
                 }
-                
+                var test = _mapper.Map<IEnumerable<UserDTOOutput>>(findUsers);
                 var result = new
                 {
                     response = _mapper.Map<IEnumerable<UserDTOOutput>>(findUsers)
@@ -80,7 +80,7 @@ namespace Organization_Service.Controllers
 
             try
             {
-                var findUser = await _context.User.Where(u => u.ID == id).Include(u => u.Roles).Select(u => ItemToDTO(u)).FirstOrDefaultAsync();
+                var findUser = await _context.User.Where(u => u.ID == id).FirstOrDefaultAsync();
 
                 if (findUser == null || !UserExists(id))
                 {

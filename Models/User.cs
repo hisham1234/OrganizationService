@@ -76,8 +76,6 @@ namespace Organization_Service.Models
 
         public int? OfficeID { get; set; }
 
-        public Office Office { get; set; }
-
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }

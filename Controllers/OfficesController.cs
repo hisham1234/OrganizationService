@@ -30,7 +30,10 @@ namespace Organization_Service.Controllers
             _telemetry = telemetry;
             _logger = logger;
             _context = context;
-         
+            _mapper = mapper;
+            logHelp = new LoggerHelper();
+
+
         }
 
         // GET: api/Offices
@@ -119,7 +122,7 @@ namespace Organization_Service.Controllers
                     return NotFound();
                 }
                 
-                var findUsers = await _context.User.Where(u => u.OfficeID == id).Include(u => u.Roles).Select(u => ItemToDTO(u)).ToListAsync();
+                var findUsers = await _context.User.Where(u => u.OfficeID == id).Include(u => u.Roles).ToListAsync();
 
                 if (findUsers == null)
                 {

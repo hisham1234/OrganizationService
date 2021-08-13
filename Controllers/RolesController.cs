@@ -135,8 +135,8 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation(logHelp.getMessage(nameof(PutRole), StatusCodes.Status204NoContent));
-
-                    return NoContent();
+                    return CreatedAtAction(nameof(PutRole), role);
+                    //return NoContent();
                 }
             }
             catch(Exception ex)
@@ -200,7 +200,9 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation(logHelp.getMessage(nameof(DeleteRole), StatusCodes.Status204NoContent));
-                    return NoContent();
+                    
+                    return CreatedAtAction(nameof(DeleteRole), role);
+                    //return NoContent();
                 }
             }
             catch (Exception ex)

@@ -175,8 +175,9 @@ namespace Organization_Service.Controllers
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation(logHelp.getMessage(nameof(PutUser), StatusCodes.Status204NoContent));
-
-                return NoContent();
+               
+                return CreatedAtAction(nameof(PutUser), user);
+                //return NoContent();
             }
             catch (Exception ex)
             {
@@ -245,7 +246,9 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation(logHelp.getMessage(nameof(DeleteUser), StatusCodes.Status204NoContent));
-                     return NoContent();
+                    
+                    return CreatedAtAction(nameof(DeleteUser), user);
+                    // return NoContent();
                 }
             }
             catch (Exception ex)

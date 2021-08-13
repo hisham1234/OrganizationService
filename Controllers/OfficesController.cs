@@ -186,7 +186,9 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
                     
                     _logger.LogInformation(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status204NoContent));
-                    return NoContent();
+                    
+                    return CreatedAtAction(nameof(PutOffice), office);
+                    //return NoContent();
                 }
             }
             catch (Exception ex)
@@ -253,7 +255,9 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation(logHelp.getMessage(nameof(DeleteOffice), StatusCodes.Status204NoContent));
-                    return NoContent();
+                    
+                    return CreatedAtAction(nameof(DeleteOffice), office);
+                    //return NoContent();
                 }
             }
             catch (Exception ex)

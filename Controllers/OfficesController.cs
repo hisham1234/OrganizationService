@@ -187,7 +187,11 @@ namespace Organization_Service.Controllers
                     
                     _logger.LogInformation(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status204NoContent));
                     
-                    return CreatedAtAction(nameof(PutOffice), office);
+                    var result = new
+                    {
+                        response = ItemToDTO(office)
+                    };                
+                    return Ok(result);
                     //return NoContent();
                 }
             }
@@ -256,7 +260,11 @@ namespace Organization_Service.Controllers
 
                     _logger.LogInformation(logHelp.getMessage(nameof(DeleteOffice), StatusCodes.Status204NoContent));
                     
-                    return CreatedAtAction(nameof(DeleteOffice), office);
+                    var result = new
+                    {
+                        response = ItemToDTO(office)
+                    };                
+                    return Ok(result);
                     //return NoContent();
                 }
             }

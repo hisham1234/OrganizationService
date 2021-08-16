@@ -45,7 +45,7 @@ namespace Organization_Service.Controllers
             try
             {
                 var findUsers = await _context.User.AsNoTracking().Include(u => u.Roles).ToListAsync();
-                
+
                 if (findUsers == null)
                 {
                     _logger.LogWarning(logHelp.getMessage(nameof(GetUsers),StatusCodes.Status404NotFound));
@@ -85,7 +85,7 @@ namespace Organization_Service.Controllers
                 {
                     _logger.LogWarning(logHelp.getMessage(nameof(GetUser),StatusCodes.Status404NotFound));
                     _logger.LogWarning(logHelp.getMessage(nameof(GetUser), "User was not Found"));
-                    
+
                     return NotFound();
                 }
 
@@ -93,7 +93,7 @@ namespace Organization_Service.Controllers
                 {
                     response = _mapper.Map<UserDTOOutput>(findUser)
                 };
-                
+
                 _logger.LogInformation(logHelp.getMessage(nameof(GetUser),StatusCodes.Status200OK));
 
                 return Ok(result);
@@ -102,7 +102,7 @@ namespace Organization_Service.Controllers
             {
                 _logger.LogError(logHelp.getMessage(nameof(GetUser),StatusCodes.Status500InternalServerError));
                 _logger.LogError(logHelp.getMessage(nameof(GetUser), ex.Message));
-                
+
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -113,7 +113,7 @@ namespace Organization_Service.Controllers
         public async Task<IActionResult> PutUser(int id, UserDTO userDTO)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(PutUser)));
- 
+
             try
             {
                 var user = await _context.User.FindAsync(id);
@@ -130,7 +130,7 @@ namespace Organization_Service.Controllers
                 {
                     _logger.LogError(logHelp.getMessage(nameof(PutUser),StatusCodes.Status400BadRequest));
                     _logger.LogError(logHelp.getMessage(nameof(PutUser), "User was not Found"));
-                    
+
 
                     return BadRequest();
                 }
@@ -153,7 +153,7 @@ namespace Organization_Service.Controllers
                     {
                         _logger.LogError(logHelp.getMessage(nameof(PutUser), StatusCodes.Status400BadRequest));
                         _logger.LogError(logHelp.getMessage(nameof(PutUser), "RolesID does not match"));
-  
+
                         return BadRequest();
                     }
 
@@ -171,12 +171,16 @@ namespace Organization_Service.Controllers
                 user.LastName = String.IsNullOrWhiteSpace(userDTO.LastName) == false ? userDTO.LastName : user.LastName;
                 user.OfficeID = userDTO.OfficeID != null ? userDTO.OfficeID : user.OfficeID;
                 user.UpdatedAt = DateTime.Now;
-                
+
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation(logHelp.getMessage(nameof(PutUser), StatusCodes.Status204NoContent));
-               
-                return CreatedAtAction(nameof(PutUser), user);
+                
+                var result = new
+                {
+                    response = _mapper.Map<UserDTOOutput>(user)
+                };                
+                return Ok(result);             
                 //return NoContent();
             }
             catch (Exception ex)
@@ -212,14 +216,14 @@ namespace Organization_Service.Controllers
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation(logHelp.getMessage(nameof(PostUser), StatusCodes.Status201Created));
-             
+
                 return CreatedAtAction(nameof(GetUser), new { id = user.ID }, _mapper.Map<UserDTOOutput>(user));
             }
             catch (Exception ex)
             {
                 _logger.LogError(logHelp.getMessage(nameof(PostUser), StatusCodes.Status500InternalServerError));
                 _logger.LogError(logHelp.getMessage(nameof(PostUser), ex.Message));
- 
+
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -246,16 +250,19 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation(logHelp.getMessage(nameof(DeleteUser), StatusCodes.Status204NoContent));
-                    
-                    return CreatedAtAction(nameof(DeleteUser), user);
-                    // return NoContent();
+                   
+                    var result = new
+                    {
+                        response = _mapper.Map<UserDTOOutput>(user)
+                    };                  
+                    return Ok(result);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(logHelp.getMessage(nameof(DeleteUser),StatusCodes.Status500InternalServerError));
                 _logger.LogError(logHelp.getMessage(nameof(DeleteUser), ex.Message));
-                
+
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Organization_Service.Helpers;
 using Organization_Service.Models;
-
+using AutoMapper;
 namespace Organization_Service.Controllers
 {
     [Route("api/[controller]")]
@@ -21,18 +21,20 @@ namespace Organization_Service.Controllers
         private readonly ILogger _logger;
         private readonly TelemetryClient _telemetry;
         private readonly OrganizationContext _context;
+        private readonly IMapper _mapper;
         private LoggerHelper logHelp;
-        public RolesController(OrganizationContext context, ILogger<RolesController> logger, TelemetryClient telemetry)
+        public RolesController(OrganizationContext context, ILogger<RolesController> logger, TelemetryClient telemetry, IMapper mapper)
         {
             _telemetry = telemetry;
             _logger = logger;
             _context = context;
+            _mapper = mapper;
             logHelp = new LoggerHelper();
         }
 
         // GET: api/Roles
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RoleDTO>>> GetRoles()
+        public async Task<ActionResult<IEnumerable<UserDTOOutput>>> GetRoles()
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetRoles)));
 
@@ -135,8 +137,14 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation(logHelp.getMessage(nameof(PutRole), StatusCodes.Status204NoContent));
-
-                    return NoContent();
+                    
+                    var result = new
+                    {
+                        response = ItemToDTO(role)
+                    };
+                                
+                    return Ok(result);
+                    //return NoContent();
                 }
             }
             catch(Exception ex)
@@ -200,7 +208,14 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation(logHelp.getMessage(nameof(DeleteRole), StatusCodes.Status204NoContent));
-                    return NoContent();
+                    
+                    var result = new
+                    {
+                        response = ItemToDTO(role)
+                    };
+                                
+                    return Ok(result);
+                    //return NoContent();
                 }
             }
             catch (Exception ex)

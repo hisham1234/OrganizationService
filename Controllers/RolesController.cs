@@ -37,7 +37,7 @@ namespace Organization_Service.Controllers
         // GET: api/Roles
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<UserDTOOutput>>> GetRoles()
+        public async Task<ActionResult<IEnumerable<UserResponseDTO>>> GetRoles()
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetRoles)));
 

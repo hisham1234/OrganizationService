@@ -184,7 +184,7 @@ namespace Organization_Service.Controllers
                 
                 var result = new
                 {
-                    response = _mapper.Map<UserDTOOutput>(user)
+                    response = _mapper.Map<UserResponseDTO>(user)
                 };                
                 return Ok(result);             
                 //return NoContent();
@@ -262,7 +262,7 @@ namespace Organization_Service.Controllers
                    
                     var result = new
                     {
-                        response = _mapper.Map<UserDTOOutput>(user)
+                        response = _mapper.Map<UserResponseDTO>(user)
                     };                  
                     return Ok(result);
                 }

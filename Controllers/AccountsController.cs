@@ -46,6 +46,10 @@ namespace Organization_Service.Controllers
         [Authorize]
         public async Task<ActionResult<UserResponseDTO>> Me()
         {
+            /**
+             * Get user email from token to return all information about the user.
+             */
+
             var currentUser = HttpContext.User;
             string email = currentUser.Claims.First(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").Value;
             var findUser = await _context.User.Where(u => u.Email == email).FirstOrDefaultAsync();
@@ -62,7 +66,8 @@ namespace Organization_Service.Controllers
         {
             // Get user with email passed in
             var findUser = await _context.User.Where(u => u.Email == user.Email).FirstOrDefaultAsync();
-            
+
+            // Check if user linked to the token exist
             if(findUser == null)
             {
                 return StatusCode((int)System.Net.HttpStatusCode.Unauthorized, "Bad Login / Password");
@@ -91,7 +96,9 @@ namespace Organization_Service.Controllers
         [Authorize]
         public async Task<IActionResult> PutMe(UserDTO userDTO)
         {
-
+            /**
+             * Get user email from token and update the related user with the information passed in the request body.
+             */
             _logger.LogInformation(logHelp.getMessage(nameof(PutMe)));
             var currentUser = HttpContext.User;
            
@@ -102,15 +109,17 @@ namespace Organization_Service.Controllers
                 string email = currentUser.Claims.First(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").Value;
                 var findUser = await _context.User.Where(u => u.Email == email).FirstOrDefaultAsync();
 
+                // Test if the user got from the email has the same ID that the user in parameter
                 if (findUser.ID != userDTO.ID)
                 {
                     _logger.LogError(logHelp.getMessage(nameof(PutMe), StatusCodes.Status400BadRequest));
-                    _logger.LogError(logHelp.getMessage(nameof(PutMe), "Id find from the token doesn't match id in parameter"));
+                    _logger.LogError(logHelp.getMessage(nameof(PutMe), "Id found missmatch the Id related to the token"));
 
 
                     return BadRequest();
                 }
 
+                // If the user have roles
                 if (userDTO.RolesID != null)
                 {
                     userDTO.RolesID.Sort();
@@ -175,6 +184,10 @@ namespace Organization_Service.Controllers
         [Authorize]
         public async Task<IActionResult>  DeleteMe()
         {
+
+            /**
+             * Get email from token and delete related user.
+             */
             _logger.LogInformation(logHelp.getMessage(nameof(DeleteMe)));
             try
             {
@@ -208,6 +221,12 @@ namespace Organization_Service.Controllers
         [Authorize]
         public async Task<IActionResult> Verify()
         {
+
+            /**
+             * Get user email from token and check if the user exist.
+             * Return code 200 if the user is existing
+             * Return code 401 if the user is not existing (unauthorized token).
+             */
 
             var currentUser = HttpContext.User;
             string email = currentUser.Claims.First(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").Value;

@@ -162,7 +162,7 @@ namespace Organization_Service.Controllers
             _logger.LogInformation(logHelp.getMessage(nameof(PostRole)));
           try
             {
-                var role = new Role
+                var role = new RoleEntity
                 {
                     ID = roleDTO.ID,
                     RoleName = roleDTO.RoleName,
@@ -223,7 +223,7 @@ namespace Organization_Service.Controllers
             return _context.Role.Any(e => e.ID == id);
         }
 
-        private static RoleDTO ItemToDTO(Role role) => new RoleDTO
+        private static RoleDTO ItemToDTO(RoleEntity role) => new RoleDTO
         {
             ID = role.ID,
             RoleName = role.RoleName

@@ -5,10 +5,11 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.IdentityModel.Tokens;
+using Organization_Service.Models;
 
 namespace Organization_Service.Helpers
 {
-    public class SaltedHashedHelper
+    public static class SaltedHashedHelper
     {
 
         public static byte[] GetSalt()
@@ -32,20 +33,24 @@ namespace Organization_Service.Helpers
             return hashed;
         }
 
-        private string GenerateJwtToken(string userName, string jwtKey, string issuer, string audiance)
+        public static string GenerateJSONWebToken(UserEntity userInfo)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(jwtKey);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[] { new Claim("id", userName) }),
-                Expires = DateTime.UtcNow.AddHours(1),
-                Issuer = issuer,
-                Audience = audiance,
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[] {
+                new Claim(JwtRegisteredClaimNames.Email, userInfo.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+
             };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+
+            var token = new JwtSecurityToken(Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                claims,
+                expires: DateTime.Now.AddMinutes(120),
+                signingCredentials: credentials);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }   

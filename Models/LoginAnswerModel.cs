@@ -1,7 +1,11 @@
 ﻿using System;
 namespace Organization_Service.Models
 {
-    public class LoginAnswer
+
+    /**
+     * This class is matching login's answer including the token information.
+     */
+    public class LoginAnswerModel
     {
         public string Token { get; set; }
 

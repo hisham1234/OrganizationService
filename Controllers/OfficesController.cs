@@ -139,7 +139,7 @@ namespace Organization_Service.Controllers
 
                 var result = new
                 {
-                    response = _mapper.Map <IEnumerable<UserDTOOutput>>(findUsers)
+                    response = _mapper.Map <IEnumerable<UserResponseDTO>>(findUsers)
                 };
 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status200OK));
@@ -214,7 +214,7 @@ namespace Organization_Service.Controllers
             _logger.LogInformation(logHelp.getMessage(nameof(PostOffice)));
             try
             {
-                var office = new Office
+                var office = new OfficeEntity
                 {
                     ID = officeDTO.ID,
                     OfficeName = officeDTO.OfficeName,
@@ -277,14 +277,14 @@ namespace Organization_Service.Controllers
             return _context.Office.Any(e => e.ID == id);
         }
 
-        private static OfficeDTO ItemToDTO(Office office) => new OfficeDTO
+        private static OfficeDTO ItemToDTO(OfficeEntity office) => new OfficeDTO
         {
             ID = office.ID,
             OfficeName = office.OfficeName,
             ParentOfficeID = office.ParentOfficeID
         };
 
-        private static UserDTO ItemToDTO(User user) => new UserDTO
+        private static UserDTO ItemToDTO(UserEntity user) => new UserDTO
         {
             ID = user.ID,
             Email = user.Email,

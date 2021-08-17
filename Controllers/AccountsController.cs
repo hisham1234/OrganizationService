@@ -44,35 +44,39 @@ namespace Organization_Service.Controllers
         // GET api/account/me
         [HttpGet("me")]
         [Authorize]
-        public async Task<ActionResult<UserDTOOutput>> Me()
+        public async Task<ActionResult<UserResponseDTO>> Me()
         {
             var currentUser = HttpContext.User;
             string email = currentUser.Claims.First(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").Value;
             var findUser = await _context.User.Where(u => u.Email == email).FirstOrDefaultAsync();
+            var result = new {
+                response = _mapper.Map<UserResponseDTO>(findUser)
+            };
 
-            return Ok(_mapper.Map<UserDTOOutput>(findUser));    
+            return Ok(result);    
         }
 
         // POST api/account/login
         [HttpPost("login")]
-        public async Task<ActionResult<LoginAnswer>> Login(UserLogin user)
+        public async Task<ActionResult<LoginAnswerModel>> Login(UserLoginModel user)
         {
             // Get user with email passed in
             var findUser = await _context.User.Where(u => u.Email == user.Email).FirstOrDefaultAsync();
-            // verify if password is good.
             
             if(findUser == null)
             {
                 return StatusCode((int)System.Net.HttpStatusCode.Unauthorized, "Bad Login / Password");
             }
+
+            // Password verification.
             var encriptedLoginPw = SaltedHashedHelper.StringEncrypt(user.Password, findUser.Salt);
 
             if (encriptedLoginPw == findUser.Password)
             {
-                return Ok(new LoginAnswer
+                return Ok(new LoginAnswerModel
                 {
                     Message = "Authentication success",
-                    Token = GenerateJSONWebToken(findUser) // Generated token
+                    Token = SaltedHashedHelper.GenerateJSONWebToken(findUser) // Generated token
                 });
             }
             else
@@ -151,8 +155,11 @@ namespace Organization_Service.Controllers
 
                 await _context.SaveChangesAsync();
 
+                var result = new {
+                    response = _mapper.Map<UserResponseDTO>(findUser)
+                };
                 
-                return Ok(findUser);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -182,7 +189,7 @@ namespace Organization_Service.Controllers
 
                 var result = new
                 {
-                    response = _mapper.Map<UserDTOOutput>(findUser)
+                    response = _mapper.Map<UserResponseDTO>(findUser)
                 };
                 return Ok(result);
 
@@ -210,26 +217,6 @@ namespace Organization_Service.Controllers
                 return StatusCode((int)System.Net.HttpStatusCode.Unauthorized, "User has not been found");
 
             return Ok();
-        }
-
-        private string GenerateJSONWebToken(User userInfo)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-             var claims = new[] {
-                new Claim(JwtRegisteredClaimNames.Email, userInfo.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-
-            };
-
-            var token = new JwtSecurityToken(Environment.GetEnvironmentVariable("JWT_ISSUER"),
-                Environment.GetEnvironmentVariable("JWT_ISSUER"),
-                claims,
-                expires: DateTime.Now.AddMinutes(120),
-                signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }

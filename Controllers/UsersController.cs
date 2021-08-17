@@ -58,7 +58,7 @@ namespace Organization_Service.Controllers
                 }
                 var result = new
                 {
-                    response = _mapper.Map<IEnumerable<UserDTOOutput>>(findUsers)
+                    response = _mapper.Map<IEnumerable<UserResponseDTO>>(findUsers)
                 };
 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetUsers),StatusCodes.Status200OK));
@@ -95,7 +95,7 @@ namespace Organization_Service.Controllers
 
                 var result = new
                 {
-                    response = _mapper.Map<UserDTOOutput>(findUser)
+                    response = _mapper.Map<UserResponseDTO>(findUser)
                 };
                 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetUser),StatusCodes.Status200OK));
@@ -203,7 +203,7 @@ namespace Organization_Service.Controllers
             var salt = SaltedHashedHelper.GetSalt();
             try
             {
-                var user = new User
+                var user = new UserEntity
                 {
                     Email = userDTO.Email,
                     Password = SaltedHashedHelper.StringEncrypt(userDTO.Password, salt),      // Password Encryption
@@ -220,7 +220,7 @@ namespace Organization_Service.Controllers
 
                 _logger.LogInformation(logHelp.getMessage(nameof(PostUser), StatusCodes.Status201Created));
              
-                return CreatedAtAction(nameof(GetUser), new { id = user.ID }, _mapper.Map<UserDTOOutput>(user));
+                return CreatedAtAction(nameof(GetUser), new { id = user.ID }, _mapper.Map<UserResponseDTO>(user));
             }
             catch (Exception ex)
             {
@@ -271,7 +271,7 @@ namespace Organization_Service.Controllers
             return _context.User.Any(e => e.ID == id);
         }
 
-        private static UserDTO ItemToDTO(User user) => new UserDTO
+        private static UserDTO ItemToDTO(UserEntity user) => new UserDTO
         {
             ID = user.ID,
             Email = user.Email,

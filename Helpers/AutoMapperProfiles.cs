@@ -8,7 +8,7 @@ namespace Organization_Service.Helpers
     {
         public AutoMapperProfiles()
         {
-            CreateMap<User, UserDTOOutput>();
+            CreateMap<UserEntity, UserResponseDTO>();
         }
     }
 }

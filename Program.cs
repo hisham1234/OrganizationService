@@ -35,7 +35,7 @@ namespace Organization_Service
                     // Data seeding
                     // Add an admin
                     var salt = SaltedHashedHelper.GetSalt();
-                    context.User.Add(new User { 
+                    context.User.Add(new UserEntity { 
                         Email = "admin",
                         Password = SaltedHashedHelper.StringEncrypt("admin", salt),
                         FirstName = "admin",

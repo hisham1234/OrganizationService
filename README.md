@@ -53,7 +53,7 @@ All the other function are protected, and need a valid token to be used. The tok
 #### Header value
 |Key|Value|
 |:--|:--|
-|Authorization|Token {YOUR_TOKEN}|
+|Authorization|Bearer {YOUR_TOKEN}|
 
 By default an user with "admin/admin" credential has been created.
 

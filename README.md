@@ -26,6 +26,36 @@ API references is defined as follows.
 |Get Role|GET /organization-service/api/roles/{roleId}|
 |Update Role|PUT /organization-service/api/roleds/{roleId}|
 |Delete Role|DELETE /organization-service/api/roles/{roleId}|
+|Login my account|POST /organization-service/api/accounts/login|
+|Delete my account|POST /organization-service/api/accounts/me|
+|Update my account|PUT /organization-service/api/accounts/me|
+|Get my account|Get /organization-service/api/accounts/me|
+|Verify account |Get /organization-service/api/accounts/verify|
+
+### Authentication Example
+First of all you need to get your authentication Token by doing a login request.
+
+Post /organization-service/api/accounts/login
+```JSON
+
+{
+    "Email": "admin",
+    "Password": "admin"
+}
+
+{
+    "token": "ey....",
+    "message": "Authentication success"
+}
+```
+
+All the other function are protected, and need a valid token to be used. The token value need to be used in the header of the request.
+#### Header value
+|Key|Value|
+|:--|:--|
+|Authorization|Token {YOUR_TOKEN}|
+
+By default an user with "admin/admin" credential has been created.
 
 ***
 ### DTO DataFormat

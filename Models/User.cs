@@ -43,6 +43,9 @@ namespace Organization_Service.Models
         [Column(TypeName = "datetime")]
         public DateTime UpdatedAt { get; set; }
 
+        [MaxLength(16   )]
+        public Byte[] Salt { get; set; }
+
         public ICollection<Role> Roles { get; set; }
     }
 

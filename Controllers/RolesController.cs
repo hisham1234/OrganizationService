@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ namespace Organization_Service.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class RolesController : ControllerBase
     {
         // Inject telemetry and logger is necessary in order to add
@@ -32,6 +34,7 @@ namespace Organization_Service.Controllers
 
         // GET: api/Roles
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<RoleDTO>>> GetRoles()
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetRoles)));
@@ -68,6 +71,7 @@ namespace Organization_Service.Controllers
 
         // GET: api/Roles/5
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<RoleDTO>> GetRole(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetRole)));
@@ -105,6 +109,7 @@ namespace Organization_Service.Controllers
         // PUT: api/Roles/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutRole(int id, RoleDTO roleDTO)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(PutRole)));
@@ -151,6 +156,7 @@ namespace Organization_Service.Controllers
         // POST: api/Roles
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<RoleDTO>> PostRole(RoleDTO roleDTO)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(PostRole)));
@@ -181,6 +187,7 @@ namespace Organization_Service.Controllers
 
         // DELETE: api/Roles/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteRole(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(DeleteRole)));

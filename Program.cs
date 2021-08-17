@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Organization_Service.Models;
-
+using Organization_Service.Helpers;
 namespace Organization_Service
 {
     public class Program
@@ -31,6 +31,22 @@ namespace Organization_Service
                     var context = services.GetRequiredService<OrganizationContext>();
                     context.Database.EnsureCreated();
                     // DbInitializer.Initialize(context);
+
+                    // Data seeding
+                    // Add an admin
+                    var salt = SaltedHashedHelper.GetSalt();
+                    context.User.Add(new User { 
+                        Email = "admin",
+                        Password = SaltedHashedHelper.StringEncrypt("admin", salt),
+                        FirstName = "admin",
+                        LastName = "admin",
+                        OfficeID = null,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
+                        Salt = salt
+                    });
+
+                    context.SaveChanges();
                 }
                 catch (Exception ex)
                 {

@@ -12,6 +12,8 @@ using Organization_Service.Helpers;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
+using static Organization_Service.Helpers.SaltedHashedHelper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Organization_Service.Controllers
 {
@@ -38,6 +40,7 @@ namespace Organization_Service.Controllers
 
         // GET: api/Users
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetUsers)));
@@ -73,6 +76,7 @@ namespace Organization_Service.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetUser)));
@@ -110,6 +114,7 @@ namespace Organization_Service.Controllers
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutUser(int id, UserDTO userDTO)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(PutUser)));
@@ -163,10 +168,11 @@ namespace Organization_Service.Controllers
                 {
                     user.Roles = user.Roles;
                 }
-
+                
+                user.Salt = SaltedHashedHelper.GetSalt();
                 user.ID = userDTO.ID;
                 user.Email = String.IsNullOrWhiteSpace(userDTO.Email) == false ? userDTO.Email : user.Email;
-                user.Password = String.IsNullOrWhiteSpace(userDTO.Password) == false ? StringEncryption(userDTO.Password) : user.Password;     // Password Encryption
+                user.Password = String.IsNullOrWhiteSpace(userDTO.Password) == false ? SaltedHashedHelper.StringEncrypt(userDTO.Password, user.Salt) : user.Password;     // Password Encryption
                 user.FirstName = String.IsNullOrWhiteSpace(userDTO.FirstName) == false ? userDTO.FirstName : user.FirstName;
                 user.LastName = String.IsNullOrWhiteSpace(userDTO.LastName) == false ? userDTO.LastName : user.LastName;
                 user.OfficeID = userDTO.OfficeID != null ? userDTO.OfficeID : user.OfficeID;
@@ -190,21 +196,23 @@ namespace Organization_Service.Controllers
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<UserDTO>> PostUser(UserDTO userDTO)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(PostUser)));
-
+            var salt = SaltedHashedHelper.GetSalt();
             try
             {
                 var user = new User
                 {
                     Email = userDTO.Email,
-                    Password = StringEncryption(userDTO.Password),      // Password Encryption
+                    Password = SaltedHashedHelper.StringEncrypt(userDTO.Password, salt),      // Password Encryption
                     FirstName = userDTO.FirstName,
                     LastName = userDTO.LastName,
                     OfficeID = userDTO.OfficeID ?? null,
                     CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
+                    UpdatedAt = DateTime.Now,
+                    Salt = salt
                 };
 
                 _context.User.Add(user);
@@ -225,6 +233,7 @@ namespace Organization_Service.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteUser(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(DeleteUser)));
@@ -272,23 +281,5 @@ namespace Organization_Service.Controllers
             OfficeID = user.OfficeID,
             RolesID = user.Roles.Select(r => r.ID).ToList()
         };
-
-        private string StringEncryption(string target)
-        {
-            _logger.LogInformation(logHelp.getMessage(nameof(StringEncryption)));
-            byte[] salt = new byte[128 / 8];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(salt);
-
-            // https://docs.microsoft.com/ja-jp/aspnet/core/security/data-protection/consumer-apis/password-hashing?view=aspnetcore-5.0
-            string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-              password: target,
-              salt: salt,
-              prf: KeyDerivationPrf.HMACSHA256,
-              iterationCount: 10000,
-              numBytesRequested: 256 / 8));
-
-            return hashed;
-        }
     }
 }

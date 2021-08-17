@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.ApplicationInsights;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,7 @@ namespace Organization_Service.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class OfficesController : ControllerBase
     {
         // Inject telemetry and logger is necessary in order to add
@@ -38,6 +40,7 @@ namespace Organization_Service.Controllers
 
         // GET: api/Offices
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<OfficeDTO>>> GetOffices()
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetOffices)));
@@ -72,6 +75,7 @@ namespace Organization_Service.Controllers
 
         // GET: api/Offices/5
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<OfficeDTO>> GetOffice(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetOffice)));
@@ -108,6 +112,7 @@ namespace Organization_Service.Controllers
 
         // GET: api/Offices/5/users
         [HttpGet("{id}/users")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<OfficeDTO>>> GetSpecificOfficeUsers(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetSpecificOfficeUsers)));
@@ -153,6 +158,7 @@ namespace Organization_Service.Controllers
         // PUT: api/Offices/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutOffice(int id, OfficeDTO officeDTO)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(PutOffice)));
@@ -202,6 +208,7 @@ namespace Organization_Service.Controllers
         // POST: api/Offices
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<OfficeDTO>> PostOffice(OfficeDTO officeDTO)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(PostOffice)));
@@ -233,6 +240,7 @@ namespace Organization_Service.Controllers
 
         // DELETE: api/Offices/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteOffice(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(DeleteOffice)));

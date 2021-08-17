@@ -14,6 +14,9 @@ using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Organization_Service.Models;
 using Organization_Service.Helpers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Organization_Service
 {
@@ -41,6 +44,21 @@ namespace Organization_Service
                     .AllowAnyMethod()
                     .AllowAnyHeader();
             }));
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                        ValidAudience = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")))
+                    };
+                });
 
             var connectionString = Environment.GetEnvironmentVariable("MYSQL_CONNECTSTRING");
             var serverVersion = new MySqlServerVersion(new Version(8, 0, 25));
@@ -70,6 +88,7 @@ namespace Organization_Service
             //enabled CORS policy for any origins
             app.UseCors(allowOriginsAll);
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

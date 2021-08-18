@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using Organization_Service.Models;
+using Organization_Service.Entities;
 using Organization_Service.Helpers;
 namespace Organization_Service
 {

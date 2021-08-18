@@ -15,7 +15,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Organization_Service.Helpers;
+using Organization_Service.Entities;
 using Organization_Service.Models;
+using Organization_Service.Models.DTO;
 
 namespace Organization_Service.Controllers
 {

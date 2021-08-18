@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.IdentityModel.Tokens;
-using Organization_Service.Models;
+using Organization_Service.Entities;
 
 namespace Organization_Service.Helpers
 {

@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using Organization_Service.Models;
+using Organization_Service.Entities;
+using Organization_Service.Models.DTO;
 using Organization_Service.Helpers;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
@@ -41,7 +40,7 @@ namespace Organization_Service.Controllers
         // GET: api/Users
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserResponseDTO>>> GetUsers()
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetUsers)));
 
@@ -77,7 +76,7 @@ namespace Organization_Service.Controllers
         // GET: api/Users/5
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<ActionResult<UserDTO>> GetUser(int id)
+        public async Task<ActionResult<UserResponseDTO>> GetUser(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetUser)));
 

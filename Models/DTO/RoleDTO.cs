@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Organization_Service.Models
+namespace Organization_Service.Entities
 {
     public class RoleDTO
     {

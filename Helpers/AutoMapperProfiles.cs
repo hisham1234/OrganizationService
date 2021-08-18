@@ -1,6 +1,6 @@
 ﻿using System;
 using AutoMapper;
-using Organization_Service.Models;
+using Organization_Service.Entities;
 
 namespace Organization_Service.Helpers
 {

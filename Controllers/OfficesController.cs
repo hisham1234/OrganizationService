@@ -4,17 +4,22 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.ApplicationInsights;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Organization_Service.Helpers;
+using Organization_Service.Entities;
 using Organization_Service.Models;
+using Organization_Service.Models.DTO;
+
 
 namespace Organization_Service.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class OfficesController : ControllerBase
     {
         // Inject telemetry and logger is necessary in order to add
@@ -38,13 +43,13 @@ namespace Organization_Service.Controllers
 
         // GET: api/Offices
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OfficeDTO>>> GetOffices()
+        [Authorize]
+        public async Task<ActionResult> GetOffices()
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetOffices)));
             try
             {
-                var findOffices = await _context.Office.Select(x => ItemToDTO(x)).ToListAsync();
-                
+                var findOffices = _mapper.Map<IEnumerable<ResponseOfficeDTO>>(await _context.Office.ToListAsync());
                 if (findOffices == null)
                 {
                     _logger.LogWarning(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status404NotFound));
@@ -72,13 +77,14 @@ namespace Organization_Service.Controllers
 
         // GET: api/Offices/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<OfficeDTO>> GetOffice(int id)
+        [Authorize]
+        public async Task<ActionResult> GetOffice(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetOffice)));
 
             try
             {
-                var office = await _context.Office.FindAsync(id);
+                var office = _mapper.Map<ResponseOfficeDTO>(await _context.Office.FindAsync(id));
                 
                 if (office == null || !OfficeExists(id))
                 {
@@ -90,7 +96,7 @@ namespace Organization_Service.Controllers
 
                 var result = new
                 {
-                    response = ItemToDTO(office)
+                    response = office
                 };
                 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetOffice), StatusCodes.Status200OK));
@@ -108,7 +114,8 @@ namespace Organization_Service.Controllers
 
         // GET: api/Offices/5/users
         [HttpGet("{id}/users")]
-        public async Task<ActionResult<IEnumerable<OfficeDTO>>> GetSpecificOfficeUsers(int id)
+        [Authorize]
+        public async Task<ActionResult> GetSpecificOfficeUsers(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetSpecificOfficeUsers)));
 
@@ -134,7 +141,7 @@ namespace Organization_Service.Controllers
 
                 var result = new
                 {
-                    response = _mapper.Map <IEnumerable<UserDTOOutput>>(findUsers)
+                    response = _mapper.Map <IEnumerable<ResponseOfficeDTO>>(findUsers)
                 };
 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status200OK));
@@ -153,7 +160,8 @@ namespace Organization_Service.Controllers
         // PUT: api/Offices/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutOffice(int id, OfficeDTO officeDTO)
+        [Authorize]
+        public async Task<IActionResult> PutOffice(int id, UpdateOfficeDTO officeToUpdate)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(PutOffice)));
             
@@ -169,7 +177,7 @@ namespace Organization_Service.Controllers
 
                     return NotFound();
                 }
-                else if (id != officeDTO.ID)
+                else if (id != officeToUpdate.ID)
                 {
                     _logger.LogError(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status400BadRequest));
                     _logger.LogError(logHelp.getMessage(nameof(PutOffice), "Office was not Found"));
@@ -178,9 +186,9 @@ namespace Organization_Service.Controllers
                 }
                 else
                 {
-                    office.ID = officeDTO.ID;
-                    office.OfficeName = String.IsNullOrWhiteSpace(officeDTO.OfficeName) == false ? officeDTO.OfficeName : office.OfficeName;
-                    office.ParentOfficeID = officeDTO.ParentOfficeID != null ? officeDTO.ParentOfficeID : office.ParentOfficeID;
+                    office.ID = officeToUpdate.ID;
+                    office.OfficeName = String.IsNullOrWhiteSpace(officeToUpdate.OfficeName) == false ? officeToUpdate.OfficeName : office.OfficeName;
+                    office.ParentOfficeID = officeToUpdate.ParentOfficeID != null ? officeToUpdate.ParentOfficeID : office.ParentOfficeID;
                     office.UpdatedAt = DateTime.Now;
 
                     await _context.SaveChangesAsync();
@@ -189,7 +197,7 @@ namespace Organization_Service.Controllers
                     
                     var result = new
                     {
-                        response = ItemToDTO(office)
+                        response = _mapper.Map<ResponseOfficeDTO>(office)
                     };                
                     return Ok(result);
                     //return NoContent();
@@ -208,16 +216,16 @@ namespace Organization_Service.Controllers
         // POST: api/Offices
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<OfficeDTO>> PostOffice(OfficeDTO officeDTO)
+        [Authorize]
+        public async Task<ActionResult> PostOffice(NewOfficeDTO newOffice)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(PostOffice)));
             try
             {
-                var office = new Office
+                var office = new OfficeEntity
                 {
-                    ID = officeDTO.ID,
-                    OfficeName = officeDTO.OfficeName,
-                    ParentOfficeID = officeDTO.ParentOfficeID ?? null,
+                    OfficeName = newOffice.OfficeName,
+                    ParentOfficeID = newOffice.ParentOfficeID ?? null,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
@@ -226,7 +234,7 @@ namespace Organization_Service.Controllers
                 await _context.SaveChangesAsync();
                 
                 _logger.LogInformation(logHelp.getMessage(nameof(PostOffice), StatusCodes.Status201Created));
-                return CreatedAtAction(nameof(GetOffice), new { id = office.ID }, ItemToDTO(office));
+                return CreatedAtAction(nameof(GetOffice), new { id = office.ID }, _mapper.Map<ResponseOfficeDTO>(office));
             }
             catch(Exception ex)
             {
@@ -239,6 +247,7 @@ namespace Organization_Service.Controllers
 
         // DELETE: api/Offices/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteOffice(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(DeleteOffice)));
@@ -262,7 +271,7 @@ namespace Organization_Service.Controllers
                     
                     var result = new
                     {
-                        response = ItemToDTO(office)
+                        response = _mapper.Map<ResponseOfficeDTO>(office)
                     };                
                     return Ok(result);
                     //return NoContent();
@@ -280,23 +289,5 @@ namespace Organization_Service.Controllers
         {
             return _context.Office.Any(e => e.ID == id);
         }
-
-        private static OfficeDTO ItemToDTO(Office office) => new OfficeDTO
-        {
-            ID = office.ID,
-            OfficeName = office.OfficeName,
-            ParentOfficeID = office.ParentOfficeID
-        };
-
-        private static UserDTO ItemToDTO(User user) => new UserDTO
-        {
-            ID = user.ID,
-            Email = user.Email,
-            Password = user.Password,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            OfficeID = user.OfficeID,
-            RolesID = user.Roles.Select(r => r.ID).ToList()
-        };
     }
 }

@@ -4,10 +4,11 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Organization_Service.Models
+namespace Organization_Service.Entities
 {
+    [Table("Office")]
     [Index(nameof(OfficeName), IsUnique = true)]
-    public class Office
+    public class OfficeEntity
     {
         public int ID { get; set; }
 
@@ -16,7 +17,7 @@ namespace Organization_Service.Models
         public string OfficeName { get; set; }
 
         public int? ParentOfficeID { get; set; }
-        public Office ParentOffice { get; set; }
+        public OfficeEntity ParentOffice { get; set; }
 
         [Column(TypeName="datetime")]
         public DateTime CreatedAt { get; set; }
@@ -24,13 +25,6 @@ namespace Organization_Service.Models
         [Column(TypeName = "datetime")]
         public DateTime UpdatedAt { get; set; }
 
-        public ICollection<User> Users { get; set; }
-    }
-
-    public class OfficeDTO
-    {
-        public int ID { get; set; }
-        public string OfficeName { get; set; }
-        public int? ParentOfficeID { get; set; }
+        public ICollection<UserEntity> Users { get; set; }
     }
 }

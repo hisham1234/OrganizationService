@@ -5,13 +5,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Organization_Service.Entities;
+using Organization_Service.Models.DTO;
 using Organization_Service.Models;
 using Organization_Service.Helpers;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
+using static Organization_Service.Helpers.SaltedHashedHelper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Organization_Service.Controllers
 {
@@ -38,7 +40,8 @@ namespace Organization_Service.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<ResponseUserDTO>>> GetUsers()
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetUsers)));
 
@@ -55,7 +58,7 @@ namespace Organization_Service.Controllers
                 }
                 var result = new
                 {
-                    response = _mapper.Map<IEnumerable<UserDTOOutput>>(findUsers)
+                    response = _mapper.Map<IEnumerable<ResponseUserDTO>>(findUsers)
                 };
 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetUsers),StatusCodes.Status200OK));
@@ -73,7 +76,8 @@ namespace Organization_Service.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserDTO>> GetUser(int id)
+        [Authorize]
+        public async Task<ActionResult<ResponseUserDTO>> GetUser(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetUser)));
 
@@ -91,7 +95,7 @@ namespace Organization_Service.Controllers
 
                 var result = new
                 {
-                    response = _mapper.Map<UserDTOOutput>(findUser)
+                    response = _mapper.Map<ResponseUserDTO>(findUser)
                 };
 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetUser),StatusCodes.Status200OK));
@@ -107,18 +111,57 @@ namespace Organization_Service.Controllers
             }
         }
 
+        // POST: api/Users
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        [Authorize]
+        public async Task<ActionResult<ResponseUserDTO>> PostUser(NewUserDTO newUser)
+        {
+            _logger.LogInformation(logHelp.getMessage(nameof(PostUser)));
+            var salt = SaltedHashedHelper.GetSalt();
+            try
+            {
+                UserEntity userToSave = new UserEntity
+                {
+                    Email = newUser.Email,
+                    Password = SaltedHashedHelper.StringEncrypt(newUser.Password, salt),      // Password Encryption
+                    FirstName = newUser.FirstName,
+                    LastName = newUser.LastName,
+                    OfficeID = newUser.OfficeID ?? null,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    Salt = salt
+                };
+
+                _context.User.Add(userToSave);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation(logHelp.getMessage(nameof(PostUser), StatusCodes.Status201Created));
+
+                return CreatedAtAction(nameof(GetUser), new { id = userToSave.ID }, _mapper.Map<ResponseUserDTO>(userToSave));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(logHelp.getMessage(nameof(PostUser), StatusCodes.Status500InternalServerError));
+                _logger.LogError(logHelp.getMessage(nameof(PostUser), ex.Message));
+
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, UserDTO userDTO)
+        [Authorize]
+        public async Task<IActionResult> PutUser(int id, UpdateUserDTO user)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(PutUser)));
 
             try
             {
-                var user = await _context.User.FindAsync(id);
+                var userToSaved = await _context.User.FindAsync(id);
 
-                if (user == null || !UserExists(id))
+                if (userToSaved == null || !UserExists(id))
                 {
                     _logger.LogWarning(logHelp.getMessage(nameof(PutUser),StatusCodes.Status404NotFound));
                     _logger.LogWarning(logHelp.getMessage(nameof(PutUser), "User was not Found"));
@@ -126,7 +169,7 @@ namespace Organization_Service.Controllers
                     return NotFound();
                 }
 
-                if (id != userDTO.ID)
+                if (id != user.ID)
                 {
                     _logger.LogError(logHelp.getMessage(nameof(PutUser),StatusCodes.Status400BadRequest));
                     _logger.LogError(logHelp.getMessage(nameof(PutUser), "User was not Found"));
@@ -135,11 +178,11 @@ namespace Organization_Service.Controllers
                     return BadRequest();
                 }
 
-                if (userDTO.RolesID != null)
+                if (user.RolesID != null)
                 {
-                    userDTO.RolesID.Sort();
+                    //user.RolesID.Sort();
 
-                    var findRoles = await _context.Role.AsNoTracking().Where(r => userDTO.RolesID.Contains(r.ID)).OrderBy(r => r.ID).ToListAsync();
+                    var findRoles = await _context.Role.AsNoTracking().Where(r => user.RolesID.Contains(r.ID)).OrderBy(r => r.ID).ToListAsync();
 
                     if (findRoles == null)
                     {
@@ -149,7 +192,7 @@ namespace Organization_Service.Controllers
                         return NotFound();
                     }
 
-                    if (userDTO.RolesID.SequenceEqual(findRoles.Select(r => r.ID).ToList()) == false)
+                    if (user.RolesID.SequenceEqual(findRoles.Select(r => r.ID).ToList()) == false)
                     {
                         _logger.LogError(logHelp.getMessage(nameof(PutUser), StatusCodes.Status400BadRequest));
                         _logger.LogError(logHelp.getMessage(nameof(PutUser), "RolesID does not match"));
@@ -157,20 +200,21 @@ namespace Organization_Service.Controllers
                         return BadRequest();
                     }
 
-                    user.Roles = findRoles;
+                    userToSaved.Roles = findRoles;
                 }
                 else
                 {
-                    user.Roles = user.Roles;
+                    userToSaved.Roles = userToSaved.Roles;
                 }
 
-                user.ID = userDTO.ID;
-                user.Email = String.IsNullOrWhiteSpace(userDTO.Email) == false ? userDTO.Email : user.Email;
-                user.Password = String.IsNullOrWhiteSpace(userDTO.Password) == false ? StringEncryption(userDTO.Password) : user.Password;     // Password Encryption
-                user.FirstName = String.IsNullOrWhiteSpace(userDTO.FirstName) == false ? userDTO.FirstName : user.FirstName;
-                user.LastName = String.IsNullOrWhiteSpace(userDTO.LastName) == false ? userDTO.LastName : user.LastName;
-                user.OfficeID = userDTO.OfficeID != null ? userDTO.OfficeID : user.OfficeID;
-                user.UpdatedAt = DateTime.Now;
+                userToSaved.Salt = SaltedHashedHelper.GetSalt();
+                userToSaved.ID = user.ID;
+                userToSaved.Email = String.IsNullOrWhiteSpace(user.Email) == false ? user.Email : userToSaved.Email;
+                userToSaved.Password = String.IsNullOrWhiteSpace(user.Password) == false ? SaltedHashedHelper.StringEncrypt(user.Password, userToSaved.Salt) : userToSaved.Password;     // Password Encryption
+                userToSaved.FirstName = String.IsNullOrWhiteSpace(user.FirstName) == false ? user.FirstName : userToSaved.FirstName;
+                userToSaved.LastName = String.IsNullOrWhiteSpace(user.LastName) == false ? user.LastName : userToSaved.LastName;
+                userToSaved.OfficeID = user.OfficeID != null ? user.OfficeID : userToSaved.OfficeID;
+                userToSaved.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();
 
@@ -178,7 +222,7 @@ namespace Organization_Service.Controllers
                 
                 var result = new
                 {
-                    response = _mapper.Map<UserDTOOutput>(user)
+                    response = _mapper.Map<ResponseUserDTO>(userToSaved)
                 };                
                 return Ok(result);             
                 //return NoContent();
@@ -192,44 +236,11 @@ namespace Organization_Service.Controllers
             }
         }
 
-        // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<UserDTO>> PostUser(UserDTO userDTO)
-        {
-            _logger.LogInformation(logHelp.getMessage(nameof(PostUser)));
 
-            try
-            {
-                var user = new User
-                {
-                    Email = userDTO.Email,
-                    Password = StringEncryption(userDTO.Password),      // Password Encryption
-                    FirstName = userDTO.FirstName,
-                    LastName = userDTO.LastName,
-                    OfficeID = userDTO.OfficeID ?? null,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
-                };
-
-                _context.User.Add(user);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation(logHelp.getMessage(nameof(PostUser), StatusCodes.Status201Created));
-
-                return CreatedAtAction(nameof(GetUser), new { id = user.ID }, _mapper.Map<UserDTOOutput>(user));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(logHelp.getMessage(nameof(PostUser), StatusCodes.Status500InternalServerError));
-                _logger.LogError(logHelp.getMessage(nameof(PostUser), ex.Message));
-
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        }
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteUser(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(DeleteUser)));
@@ -253,7 +264,7 @@ namespace Organization_Service.Controllers
                    
                     var result = new
                     {
-                        response = _mapper.Map<UserDTOOutput>(user)
+                        response = _mapper.Map<ResponseUserDTO>(user)
                     };                  
                     return Ok(result);
                 }
@@ -270,35 +281,6 @@ namespace Organization_Service.Controllers
         private bool UserExists(int id)
         {
             return _context.User.Any(e => e.ID == id);
-        }
-
-        private static UserDTO ItemToDTO(User user) => new UserDTO
-        {
-            ID = user.ID,
-            Email = user.Email,
-            Password = user.Password,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            OfficeID = user.OfficeID,
-            RolesID = user.Roles.Select(r => r.ID).ToList()
-        };
-
-        private string StringEncryption(string target)
-        {
-            _logger.LogInformation(logHelp.getMessage(nameof(StringEncryption)));
-            byte[] salt = new byte[128 / 8];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(salt);
-
-            // https://docs.microsoft.com/ja-jp/aspnet/core/security/data-protection/consumer-apis/password-hashing?view=aspnetcore-5.0
-            string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-              password: target,
-              salt: salt,
-              prf: KeyDerivationPrf.HMACSHA256,
-              iterationCount: 10000,
-              numBytesRequested: 256 / 8));
-
-            return hashed;
         }
     }
 }

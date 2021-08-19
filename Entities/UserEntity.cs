@@ -4,14 +4,15 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Organization_Service.Models
+namespace Organization_Service.Entities
 {
+    [Table("User")]
     [Index(nameof(Email),IsUnique = true)]
-    public class User
+    public class UserEntity
     {
-        public User()
+        public UserEntity()
         {
-            this.Roles = new HashSet<Role>();
+            this.Roles = new HashSet<RoleEntity>();
         }
 
         public int ID { get; set; }
@@ -35,7 +36,7 @@ namespace Organization_Service.Models
         public string LastName { get; set; }
 
         public int? OfficeID { get; set; }
-        public Office Office { get; set; }
+        public OfficeEntity Office { get; set; }
 
         [Column(TypeName = "datetime")]
         public DateTime CreatedAt { get; set; }
@@ -43,43 +44,9 @@ namespace Organization_Service.Models
         [Column(TypeName = "datetime")]
         public DateTime UpdatedAt { get; set; }
 
-        public ICollection<Role> Roles { get; set; }
-    }
+        [MaxLength(16)]
+        public Byte[] Salt { get; set; }
 
-    public class UserDTO
-    {
-        public int ID { get; set; }
-
-        public string Email { get; set; }
-
-        public string Password { get; set; }
-
-        public string FirstName { get; set; }
-
-        public string LastName { get; set; }
-
-        public int? OfficeID { get; set; }
-
-        public List<int> RolesID { get; set; }
-    }
-
-    public class UserDTOOutput
-    {
-
-        public int ID { get; set; }
-
-        public string Email { get; set; }
-
-        public string FirstName { get; set; }
-
-        public string LastName { get; set; }
-
-        public int? OfficeID { get; set; }
-
-        public DateTime CreatedAt { get; set; }
-
-        public DateTime UpdatedAt { get; set; }
-
-        public ICollection<Role> Roles { get; set; }
+        public ICollection<RoleEntity> Roles { get; set; }
     }
 }

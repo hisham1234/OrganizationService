@@ -4,14 +4,15 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Organization_Service.Models
+namespace Organization_Service.Entities
 {
+    [Table("Role")]
     [Index(nameof(RoleName), IsUnique = true)]
-    public class Role
+    public class RoleEntity
     {
-        public Role()
+        public RoleEntity()
         {
-            this.Users = new HashSet<User>();
+            this.Users = new HashSet<UserEntity>();
         }
 
         public int ID { get; set; }
@@ -26,12 +27,6 @@ namespace Organization_Service.Models
         [Column(TypeName = "datetime")]
         public DateTime UpdatedAt { get; set; }
 
-        public ICollection<User> Users { get; set; }
-    }
-
-    public class RoleDTO
-    {
-        public int ID { get; set; }
-        public string RoleName { get; set; }
+        public ICollection<UserEntity> Users { get; set; }
     }
 }

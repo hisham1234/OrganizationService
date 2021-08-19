@@ -3,17 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Organization_Service.Helpers;
+using Organization_Service.Entities;
 using Organization_Service.Models;
+using Organization_Service.Models.DTO;
 using AutoMapper;
 namespace Organization_Service.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class RolesController : ControllerBase
     {
         // Inject telemetry and logger is necessary in order to add
@@ -34,13 +38,14 @@ namespace Organization_Service.Controllers
 
         // GET: api/Roles
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserDTOOutput>>> GetRoles()
+        [Authorize]
+        public async Task<ActionResult> GetRoles()
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetRoles)));
 
             try
             {
-                var findRoles = await _context.Role.Select(x => ItemToDTO(x)).ToListAsync();
+                var findRoles = _mapper.Map<IEnumerable<ResponseRoleDTO>>(await _context.Role.ToListAsync());
                 
                 if (findRoles == null)
                 {
@@ -70,13 +75,14 @@ namespace Organization_Service.Controllers
 
         // GET: api/Roles/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<RoleDTO>> GetRole(int id)
+        [Authorize]
+        public async Task<ActionResult> GetRole(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(GetRole)));
 
             try
             {
-                var role = await _context.Role.FindAsync(id);
+                var role = _mapper.Map<ResponseRoleDTO>(await _context.Role.FindAsync(id));
 
                 if (role == null || !RoleExists(id))
                 {
@@ -88,7 +94,7 @@ namespace Organization_Service.Controllers
 
                 var result = new
                 {
-                    response = ItemToDTO(role)
+                    response = role
                 };
                 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetRole),StatusCodes.Status200OK));
@@ -107,21 +113,22 @@ namespace Organization_Service.Controllers
         // PUT: api/Roles/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutRole(int id, RoleDTO roleDTO)
+        [Authorize]
+        public async Task<IActionResult> PutRole(int id, UpdateRoleDTO role)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(PutRole)));
 
             try
             {
-                var role = await _context.Role.FindAsync(id);
+                var roleToSave = await _context.Role.FindAsync(id);
 
-                if (role == null || !RoleExists(id))
+                if (roleToSave == null || !RoleExists(id))
                 {
                     _logger.LogError(logHelp.getMessage(nameof(PutRole),StatusCodes.Status404NotFound));
                     _logger.LogError(logHelp.getMessage(nameof(PutRole), "Role was not Found"));
                   return NotFound();
                 }
-                else if (id != roleDTO.ID)
+                else if (id != role.ID)
                 {
                     _logger.LogError(logHelp.getMessage(nameof(PutRole),StatusCodes.Status400BadRequest));
                     _logger.LogError(logHelp.getMessage(nameof(PutRole), "Role was not Found"));
@@ -130,9 +137,9 @@ namespace Organization_Service.Controllers
                 }
                 else
                 {
-                    role.ID = roleDTO.ID;
-                    role.RoleName = roleDTO.RoleName;
-                    role.UpdatedAt = DateTime.Now;
+                    roleToSave.ID = role.ID;
+                    roleToSave.RoleName = role.RoleName;
+                    roleToSave.UpdatedAt = DateTime.Now;
 
                     await _context.SaveChangesAsync();
 
@@ -140,7 +147,7 @@ namespace Organization_Service.Controllers
                     
                     var result = new
                     {
-                        response = ItemToDTO(role)
+                        response = _mapper.Map<ResponseRoleDTO>(roleToSave)
                     };
                                 
                     return Ok(result);
@@ -159,15 +166,15 @@ namespace Organization_Service.Controllers
         // POST: api/Roles
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<RoleDTO>> PostRole(RoleDTO roleDTO)
+        [Authorize]
+        public async Task<ActionResult> PostRole(NewRoleDTO newRole)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(PostRole)));
           try
             {
-                var role = new Role
+                var role = new RoleEntity
                 {
-                    ID = roleDTO.ID,
-                    RoleName = roleDTO.RoleName,
+                    RoleName = newRole.RoleName,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
@@ -176,7 +183,7 @@ namespace Organization_Service.Controllers
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation(logHelp.getMessage(nameof(PostRole), StatusCodes.Status201Created));
-             return CreatedAtAction(nameof(GetRole), new { id = role.ID }, ItemToDTO(role));
+             return CreatedAtAction(nameof(GetRole), new { id = role.ID }, _mapper.Map<ResponseRoleDTO>(role));
             }
             catch (Exception ex)
             {
@@ -189,6 +196,7 @@ namespace Organization_Service.Controllers
 
         // DELETE: api/Roles/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteRole(int id)
         {
             _logger.LogInformation(logHelp.getMessage(nameof(DeleteRole)));
@@ -211,7 +219,7 @@ namespace Organization_Service.Controllers
                     
                     var result = new
                     {
-                        response = ItemToDTO(role)
+                        response = _mapper.Map<ResponseRoleDTO>(role)
                     };
                                 
                     return Ok(result);
@@ -230,11 +238,5 @@ namespace Organization_Service.Controllers
         {
             return _context.Role.Any(e => e.ID == id);
         }
-
-        private static RoleDTO ItemToDTO(Role role) => new RoleDTO
-        {
-            ID = role.ID,
-            RoleName = role.RoleName
-        };
     }
 }

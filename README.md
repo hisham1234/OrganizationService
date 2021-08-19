@@ -26,39 +26,41 @@ API references is defined as follows.
 |Get Role|GET /organization-service/api/roles/{roleId}|
 |Update Role|PUT /organization-service/api/roleds/{roleId}|
 |Delete Role|DELETE /organization-service/api/roles/{roleId}|
+|Login my account|POST /organization-service/api/accounts/login|
+|Delete my account|POST /organization-service/api/accounts/me|
+|Update my account|PUT /organization-service/api/accounts/me|
+|Get my account|Get /organization-service/api/accounts/me|
+|Verify account |Get /organization-service/api/accounts/verify|
 
-***
-### DTO DataFormat
-Data Transfer Object(DTO) is defined as follows. CreatedAt and UpdateAt are not allowed to be set from the outside.
+### Authentication Example
+First of all you need to get your authentication Token by doing a login request.
 
-**UserDTO**
+Post /organization-service/api/accounts/login
+```JSON
 
-|Column name|Data type|
+{
+    "Email": "admin",
+    "Password": "admin"
+}
+
+{
+    "token": "ey....",
+    "message": "Authentication success"
+}
+```
+
+All the other function are protected, and need a valid token to be used. The token value need to be used in the header of the request.
+#### Header value
+|Key|Value|
 |:--|:--|
-|ID|int|
-|Email|string|
-|Password|string|
-|FirstName|string|
-|LastName|string|
-|OfficeID|int?|
-|Roles|collection|
+|Authorization|Bearer {YOUR_TOKEN}|
 
-**OfficeDTO**
+By default an user with "admin/admin" credential has been created.
 
-|Column name|Data type|
-|:--|:--|
-|ID|int|
-|OfficeName|string|
-|ParentOfficeID|int?|
-
-**RoleDTO**
-
-|Column name|Data type|
-|:--|:--|
-|ID|int|
-|RoleName|string|
-
-***
+### Note about the PUT method
+The put method is not a patch methods. Tt means it is updating ALL the field gave as parameter.
+Ex: If I do a put request on an existing user without filling out the password field.
+The new updated user's password will be set to 'null'. 
 
 # Getting Started
 

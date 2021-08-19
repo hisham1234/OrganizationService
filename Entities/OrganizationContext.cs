@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Organization_Service.Models 
+namespace Organization_Service.Entities 
 {
     public class OrganizationContext : DbContext
     {

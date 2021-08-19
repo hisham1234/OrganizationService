@@ -1,6 +1,6 @@
 ﻿using System;
-namespace Organization_Service.Entities
-{
+namespace Organization_Service.Models
+    {
 
     /**
      * This class is matching login's answer including the token information.

@@ -4,8 +4,9 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Organization_Service.Models
+namespace Organization_Service.Entities
 {
+    [Table("User")]
     [Index(nameof(Email),IsUnique = true)]
     public class UserEntity
     {
@@ -43,7 +44,7 @@ namespace Organization_Service.Models
         [Column(TypeName = "datetime")]
         public DateTime UpdatedAt { get; set; }
 
-        [MaxLength(16   )]
+        [MaxLength(16)]
         public Byte[] Salt { get; set; }
 
         public ICollection<RoleEntity> Roles { get; set; }

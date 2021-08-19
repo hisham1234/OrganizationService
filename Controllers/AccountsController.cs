@@ -46,7 +46,7 @@ namespace Organization_Service.Controllers
         // GET api/account/me
         [HttpGet("me")]
         [Authorize]
-        public async Task<ActionResult<UserResponseDTO>> Me()
+        public async Task<ActionResult> Me()
         {
             /**
              * Get user email from token to return all information about the user.
@@ -54,9 +54,9 @@ namespace Organization_Service.Controllers
 
             var currentUser = HttpContext.User;
             string email = currentUser.Claims.First(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").Value;
-            var findUser = await _context.User.Where(u => u.Email == email).FirstOrDefaultAsync();
+            ResponseUserDTO findUser = _mapper.Map<ResponseUserDTO>(await _context.User.Where(u => u.Email == email).FirstOrDefaultAsync());
             var result = new {
-                response = _mapper.Map<UserResponseDTO>(findUser)
+                response = findUser
             };
 
             return Ok(result);    
@@ -64,7 +64,7 @@ namespace Organization_Service.Controllers
 
         // POST api/account/login
         [HttpPost("login")]
-        public async Task<ActionResult<LoginAnswerModel>> Login(UserLoginModel user)
+        public async Task<ActionResult<LoginAnswerModel>> Login(LoginUserDTO user)
         {
             // Get user with email passed in
             var findUser = await _context.User.Where(u => u.Email == user.Email).FirstOrDefaultAsync();
@@ -96,7 +96,7 @@ namespace Organization_Service.Controllers
         // PUT api/account/me
         [HttpPut("me")]
         [Authorize]
-        public async Task<IActionResult> PutMe(UserDTO userDTO)
+        public async Task<IActionResult> PutMe(UpdateUserDTO userToUpdate)
         {
             /**
              * Get user email from token and update the related user with the information passed in the request body.
@@ -112,7 +112,7 @@ namespace Organization_Service.Controllers
                 var findUser = await _context.User.Where(u => u.Email == email).FirstOrDefaultAsync();
 
                 // Test if the user got from the email has the same ID that the user in parameter
-                if (findUser.ID != userDTO.ID)
+                if (findUser.ID != userToUpdate.ID)
                 {
                     _logger.LogError(logHelp.getMessage(nameof(PutMe), StatusCodes.Status400BadRequest));
                     _logger.LogError(logHelp.getMessage(nameof(PutMe), "Id found missmatch the Id related to the token"));
@@ -122,11 +122,11 @@ namespace Organization_Service.Controllers
                 }
 
                 // If the user have roles
-                if (userDTO.RolesID != null)
+                if (userToUpdate.RolesID != null)
                 {
-                    userDTO.RolesID.Sort();
+                    userToUpdate.RolesID.Sort();
 
-                    var findRoles = await _context.Role.AsNoTracking().Where(r => userDTO.RolesID.Contains(r.ID)).OrderBy(r => r.ID).ToListAsync();
+                    var findRoles = await _context.Role.AsNoTracking().Where(r => userToUpdate.RolesID.Contains(r.ID)).OrderBy(r => r.ID).ToListAsync();
 
                     if (findRoles == null)
                     {
@@ -136,7 +136,7 @@ namespace Organization_Service.Controllers
                         return NotFound();
                     }
 
-                    if (userDTO.RolesID.SequenceEqual(findRoles.Select(r => r.ID).ToList()) == false)
+                    if (userToUpdate.RolesID.SequenceEqual(findRoles.Select(r => r.ID).ToList()) == false)
                     {
                         _logger.LogError(logHelp.getMessage(nameof(PutMe), StatusCodes.Status400BadRequest));
                         _logger.LogError(logHelp.getMessage(nameof(PutMe), "RolesID does not match"));
@@ -151,23 +151,23 @@ namespace Organization_Service.Controllers
                     findUser.Roles = findUser.Roles;
                 }
 
-                if(String.IsNullOrWhiteSpace(userDTO.Password) == false )
+                if(String.IsNullOrWhiteSpace(userToUpdate.Password) == false )
                 {
                     findUser.Salt = SaltedHashedHelper.GetSalt();
-                    findUser.Password = SaltedHashedHelper.StringEncrypt(userDTO.Password, findUser.Salt);
+                    findUser.Password = SaltedHashedHelper.StringEncrypt(userToUpdate.Password, findUser.Salt);
                 }
                 
-                findUser.ID = userDTO.ID;
-                findUser.Email = String.IsNullOrWhiteSpace(userDTO.Email) == false ? userDTO.Email : findUser.Email;
-                findUser.FirstName = String.IsNullOrWhiteSpace(userDTO.FirstName) == false ? userDTO.FirstName : findUser.FirstName;
-                findUser.LastName = String.IsNullOrWhiteSpace(userDTO.LastName) == false ? userDTO.LastName : findUser.LastName;
-                findUser.OfficeID = userDTO.OfficeID != null ? userDTO.OfficeID : findUser.OfficeID;
+                findUser.ID = userToUpdate.ID;
+                findUser.Email = String.IsNullOrWhiteSpace(userToUpdate.Email) == false ? userToUpdate.Email : findUser.Email;
+                findUser.FirstName = String.IsNullOrWhiteSpace(userToUpdate.FirstName) == false ? userToUpdate.FirstName : findUser.FirstName;
+                findUser.LastName = String.IsNullOrWhiteSpace(userToUpdate.LastName) == false ? userToUpdate.LastName : findUser.LastName;
+                findUser.OfficeID = userToUpdate.OfficeID != null ? userToUpdate.OfficeID : findUser.OfficeID;
                 findUser.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();
 
                 var result = new {
-                    response = _mapper.Map<UserResponseDTO>(findUser)
+                    response = _mapper.Map<ResponseUserDTO>(findUser)
                 };
                 
                 return Ok(result);
@@ -204,7 +204,7 @@ namespace Organization_Service.Controllers
 
                 var result = new
                 {
-                    response = _mapper.Map<UserResponseDTO>(findUser)
+                    response = _mapper.Map<ResponseUserDTO>(findUser)
                 };
                 return Ok(result);
 

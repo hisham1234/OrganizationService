@@ -4,8 +4,9 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Organization_Service.Models
+namespace Organization_Service.Entities
 {
+    [Table("Office")]
     [Index(nameof(OfficeName), IsUnique = true)]
     public class OfficeEntity
     {

@@ -57,38 +57,10 @@ All the other function are protected, and need a valid token to be used. The tok
 
 By default an user with "admin/admin" credential has been created.
 
-***
-### DTO DataFormat
-Data Transfer Object(DTO) is defined as follows. CreatedAt and UpdateAt are not allowed to be set from the outside.
-
-**UserDTO**
-
-|Column name|Data type|
-|:--|:--|
-|ID|int|
-|Email|string|
-|Password|string|
-|FirstName|string|
-|LastName|string|
-|OfficeID|int?|
-|Roles|collection|
-
-**OfficeDTO**
-
-|Column name|Data type|
-|:--|:--|
-|ID|int|
-|OfficeName|string|
-|ParentOfficeID|int?|
-
-**RoleDTO**
-
-|Column name|Data type|
-|:--|:--|
-|ID|int|
-|RoleName|string|
-
-***
+### Note about the PUT method
+The put method is not a patch methods. Tt means it is updating ALL the field gave as parameter.
+Ex: If I do a put request on an existing user without filling out the password field.
+The new updated user's password will be set to 'null'. 
 
 # Getting Started
 

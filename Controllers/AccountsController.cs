@@ -55,11 +55,8 @@ namespace Organization_Service.Controllers
             var currentUser = HttpContext.User;
             string email = currentUser.Claims.First(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").Value;
             ResponseUserDTO findUser = _mapper.Map<ResponseUserDTO>(await _context.User.Where(u => u.Email == email).FirstOrDefaultAsync());
-            var result = new {
-                response = findUser
-            };
 
-            return Ok(result);    
+            return Ok(findUser);    
         }
 
         // POST api/accounts/login
@@ -166,12 +163,8 @@ namespace Organization_Service.Controllers
                 findUser.RefreshRate = userToUpdate.RefreshRate >0 ?userToUpdate.RefreshRate : findUser.RefreshRate;
 
                 await _context.SaveChangesAsync();
-
-                var result = new {
-                    response = _mapper.Map<ResponseUserDTO>(findUser)
-                };
                 
-                return Ok(result);
+                return Ok(_mapper.Map<ResponseUserDTO>(findUser));
             }
             catch (Exception ex)
             {
@@ -203,11 +196,7 @@ namespace Organization_Service.Controllers
 
                 _logger.LogInformation(logHelp.getMessage(nameof(DeleteMe), StatusCodes.Status204NoContent));
 
-                var result = new
-                {
-                    response = _mapper.Map<ResponseUserDTO>(findUser)
-                };
-                return Ok(result);
+                return Ok(_mapper.Map<ResponseUserDTO>(findUser));
 
             }
             catch (Exception ex)

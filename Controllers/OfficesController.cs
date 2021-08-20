@@ -57,14 +57,9 @@ namespace Organization_Service.Controllers
                     return NotFound();
                 }
 
-                var result = new
-                {
-                    response = findOffices
-                };
-
                 _logger.LogInformation(logHelp.getMessage(nameof(GetOffices), StatusCodes.Status200OK));
                
-                return Ok(result);
+                return Ok(findOffices);
             }
             catch (Exception ex)
             {
@@ -93,15 +88,10 @@ namespace Organization_Service.Controllers
 
                     return NotFound();
                 }
-
-                var result = new
-                {
-                    response = office
-                };
                 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetOffice), StatusCodes.Status200OK));
                 
-                return Ok(result);
+                return Ok(office);
             }
             catch (Exception ex)
             {
@@ -139,14 +129,9 @@ namespace Organization_Service.Controllers
                     return NotFound();
                 }
 
-                var result = new
-                {
-                    response = _mapper.Map <IEnumerable<ResponseOfficeDTO>>(findUsers)
-                };
-
                 _logger.LogInformation(logHelp.getMessage(nameof(GetSpecificOfficeUsers), StatusCodes.Status200OK));
                
-                return Ok(result);
+                return Ok(_mapper.Map<IEnumerable<ResponseOfficeDTO>>(findUsers));
             }
             catch (Exception ex)
             {
@@ -194,12 +179,8 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
                     
                     _logger.LogInformation(logHelp.getMessage(nameof(PutOffice), StatusCodes.Status204NoContent));
-                    
-                    var result = new
-                    {
-                        response = _mapper.Map<ResponseOfficeDTO>(office)
-                    };                
-                    return Ok(result);
+                                
+                    return Ok(_mapper.Map<ResponseOfficeDTO>(office));
                     //return NoContent();
                 }
             }
@@ -268,12 +249,8 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation(logHelp.getMessage(nameof(DeleteOffice), StatusCodes.Status204NoContent));
-                    
-                    var result = new
-                    {
-                        response = _mapper.Map<ResponseOfficeDTO>(office)
-                    };                
-                    return Ok(result);
+                                 
+                    return Ok(_mapper.Map<ResponseOfficeDTO>(office));
                     //return NoContent();
                 }
             }

@@ -55,14 +55,9 @@ namespace Organization_Service.Controllers
                     return NotFound();
                 }
                 
-                var result = new
-                {
-                    response = findRoles
-                };
-                
                 _logger.LogInformation(logHelp.getMessage(nameof(GetRoles),StatusCodes.Status200OK));
 
-                return Ok(result);
+                return Ok(findRoles);
             }
             catch (Exception ex)
             {
@@ -92,14 +87,9 @@ namespace Organization_Service.Controllers
                     return NotFound();
                 }
 
-                var result = new
-                {
-                    response = role
-                };
-                
                 _logger.LogInformation(logHelp.getMessage(nameof(GetRole),StatusCodes.Status200OK));
 
-                return Ok(result);
+                return Ok(role);
             }
             catch (Exception ex)
             {
@@ -144,13 +134,8 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation(logHelp.getMessage(nameof(PutRole), StatusCodes.Status204NoContent));
-                    
-                    var result = new
-                    {
-                        response = _mapper.Map<ResponseRoleDTO>(roleToSave)
-                    };
                                 
-                    return Ok(result);
+                    return Ok(_mapper.Map<ResponseRoleDTO>(roleToSave));
                     //return NoContent();
                 }
             }
@@ -216,13 +201,8 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation(logHelp.getMessage(nameof(DeleteRole), StatusCodes.Status204NoContent));
-                    
-                    var result = new
-                    {
-                        response = _mapper.Map<ResponseRoleDTO>(role)
-                    };
                                 
-                    return Ok(result);
+                    return Ok(_mapper.Map<ResponseRoleDTO>(role));
                     //return NoContent();
                 }
             }

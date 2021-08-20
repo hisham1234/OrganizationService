@@ -56,14 +56,10 @@ namespace Organization_Service.Controllers
 
                     return NotFound();
                 }
-                var result = new
-                {
-                    response = _mapper.Map<IEnumerable<ResponseUserDTO>>(findUsers)
-                };
 
                 _logger.LogInformation(logHelp.getMessage(nameof(GetUsers),StatusCodes.Status200OK));
 
-                return Ok(result);
+                return Ok(_mapper.Map<IEnumerable<ResponseUserDTO>>(findUsers));
             }
             catch (Exception ex)
             {
@@ -93,14 +89,9 @@ namespace Organization_Service.Controllers
                     return NotFound();
                 }
 
-                var result = new
-                {
-                    response = _mapper.Map<ResponseUserDTO>(findUser)
-                };
-
                 _logger.LogInformation(logHelp.getMessage(nameof(GetUser),StatusCodes.Status200OK));
 
-                return Ok(result);
+                return Ok(_mapper.Map<ResponseUserDTO>(findUser));
             }
             catch (Exception ex)
             {
@@ -221,12 +212,8 @@ namespace Organization_Service.Controllers
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation(logHelp.getMessage(nameof(PutUser), StatusCodes.Status204NoContent));
-                
-                var result = new
-                {
-                    response = _mapper.Map<ResponseUserDTO>(userToSaved)
-                };                
-                return Ok(result);             
+                               
+                return Ok(_mapper.Map<ResponseUserDTO>(userToSaved));             
                 //return NoContent();
             }
             catch (Exception ex)
@@ -263,12 +250,8 @@ namespace Organization_Service.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation(logHelp.getMessage(nameof(DeleteUser), StatusCodes.Status204NoContent));
-                   
-                    var result = new
-                    {
-                        response = _mapper.Map<ResponseUserDTO>(user)
-                    };                  
-                    return Ok(result);
+                
+                    return Ok(_mapper.Map<ResponseUserDTO>(user));
                 }
             }
             catch (Exception ex)

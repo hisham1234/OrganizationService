@@ -17,6 +17,7 @@ namespace Organization_Service.Models.DTO
         public ResponseOfficeDTO Office { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public uint RefreshRate { get; set; }
         public ICollection<ResponseRoleDTO> Roles { get; set; }
 
     }

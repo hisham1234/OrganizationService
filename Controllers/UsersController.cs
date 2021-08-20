@@ -128,6 +128,7 @@ namespace Organization_Service.Controllers
                     FirstName = newUser.FirstName,
                     LastName = newUser.LastName,
                     OfficeID = newUser.OfficeID ?? null,
+                    RefreshRate = newUser.RefreshRate,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
                     Salt = salt
@@ -213,6 +214,7 @@ namespace Organization_Service.Controllers
                 userToSaved.Password = String.IsNullOrWhiteSpace(user.Password) == false ? SaltedHashedHelper.StringEncrypt(user.Password, userToSaved.Salt) : userToSaved.Password;     // Password Encryption
                 userToSaved.FirstName = String.IsNullOrWhiteSpace(user.FirstName) == false ? user.FirstName : userToSaved.FirstName;
                 userToSaved.LastName = String.IsNullOrWhiteSpace(user.LastName) == false ? user.LastName : userToSaved.LastName;
+                userToSaved.RefreshRate = user.RefreshRate > 0 ? user.RefreshRate : userToSaved.RefreshRate;
                 userToSaved.OfficeID = user.OfficeID != null ? user.OfficeID : userToSaved.OfficeID;
                 userToSaved.UpdatedAt = DateTime.Now;
 

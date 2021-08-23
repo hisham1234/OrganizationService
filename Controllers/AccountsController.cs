@@ -43,7 +43,7 @@ namespace Organization_Service.Controllers
            logHelp = new LoggerHelper();
         }
 
-        // GET api/account/me
+        // GET api/accounts/me
         [HttpGet("me")]
         [Authorize]
         public async Task<ActionResult> Me()
@@ -55,14 +55,11 @@ namespace Organization_Service.Controllers
             var currentUser = HttpContext.User;
             string email = currentUser.Claims.First(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress").Value;
             ResponseUserDTO findUser = _mapper.Map<ResponseUserDTO>(await _context.User.Where(u => u.Email == email).FirstOrDefaultAsync());
-            var result = new {
-                response = findUser
-            };
 
-            return Ok(result);    
+            return Ok(findUser);    
         }
 
-        // POST api/account/login
+        // POST api/accounts/login
         [HttpPost("login")]
         public async Task<ActionResult<LoginAnswerModel>> Login(LoginUserDTO user)
         {
@@ -93,7 +90,7 @@ namespace Organization_Service.Controllers
             }
         }
 
-        // PUT api/account/me
+        // PUT api/accounts/me
         [HttpPut("me")]
         [Authorize]
         public async Task<IActionResult> PutMe(UpdateUserDTO userToUpdate)
@@ -112,7 +109,7 @@ namespace Organization_Service.Controllers
                 var findUser = await _context.User.Where(u => u.Email == email).FirstOrDefaultAsync();
 
                 // Test if the user got from the email has the same ID that the user in parameter
-                if (findUser.ID != userToUpdate.ID)
+                if (findUser.ID != userToUpdate.ID || findUser == null)
                 {
                     _logger.LogError(logHelp.getMessage(nameof(PutMe), StatusCodes.Status400BadRequest));
                     _logger.LogError(logHelp.getMessage(nameof(PutMe), "Id found missmatch the Id related to the token"));
@@ -163,14 +160,11 @@ namespace Organization_Service.Controllers
                 findUser.LastName = String.IsNullOrWhiteSpace(userToUpdate.LastName) == false ? userToUpdate.LastName : findUser.LastName;
                 findUser.OfficeID = userToUpdate.OfficeID != null ? userToUpdate.OfficeID : findUser.OfficeID;
                 findUser.UpdatedAt = DateTime.Now;
+                findUser.RefreshRate = userToUpdate.RefreshRate >0 ?userToUpdate.RefreshRate : findUser.RefreshRate;
 
                 await _context.SaveChangesAsync();
-
-                var result = new {
-                    response = _mapper.Map<ResponseUserDTO>(findUser)
-                };
                 
-                return Ok(result);
+                return Ok(_mapper.Map<ResponseUserDTO>(findUser));
             }
             catch (Exception ex)
             {
@@ -202,11 +196,7 @@ namespace Organization_Service.Controllers
 
                 _logger.LogInformation(logHelp.getMessage(nameof(DeleteMe), StatusCodes.Status204NoContent));
 
-                var result = new
-                {
-                    response = _mapper.Map<ResponseUserDTO>(findUser)
-                };
-                return Ok(result);
+                return Ok(_mapper.Map<ResponseUserDTO>(findUser));
 
             }
             catch (Exception ex)

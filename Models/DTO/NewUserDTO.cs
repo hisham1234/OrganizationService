@@ -15,6 +15,8 @@ namespace Organization_Service.Models.DTO
 
         public int? OfficeID { get; set; }
 
+        public uint RefreshRate { get; set; }
+
         public List<int> RolesID { get; set; }
     }
 }

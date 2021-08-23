@@ -13,6 +13,7 @@ namespace Organization_Service.Entities
         public UserEntity()
         {
             this.Roles = new HashSet<RoleEntity>();
+            this.RefreshRate = 60 * 5;
         }
 
         public int ID { get; set; }
@@ -43,6 +44,8 @@ namespace Organization_Service.Entities
 
         [Column(TypeName = "datetime")]
         public DateTime UpdatedAt { get; set; }
+
+        public uint RefreshRate { get; set; }
 
         [MaxLength(16)]
         public Byte[] Salt { get; set; }
